@@ -10,10 +10,8 @@ use AndyDefer\Directive\Services\DirectiveInteractionService;
 use AndyDefer\Directive\Services\LaravelBootstrapper;
 use AndyDefer\Records\Collections\Utility\StringTypedCollection;
 use Illuminate\Filesystem\Filesystem;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
-#
-final class MakeActionDirective extends AbstractDirective
+class MakeActionDirective extends AbstractDirective
 {
     private Filesystem $files;
 
@@ -27,7 +25,7 @@ final class MakeActionDirective extends AbstractDirective
 
     public function getSignature(): string
     {
-        return 'make:action {name : The name of the action (e.g., Users/ShowUserAction)} 
+        return 'make-action {name : The name of the action (e.g., Users/ShowUserAction)} 
                        {--type=api : Action type (api|web)} 
                        {--force : Overwrite existing files}';
     }
@@ -40,8 +38,8 @@ final class MakeActionDirective extends AbstractDirective
     public function getAliases(): StringTypedCollection
     {
         $aliases = new StringTypedCollection();
-        $aliases->add('action:make');
-        $aliases->add('create:action');
+        $aliases->add('action-make');
+        $aliases->add('create-action');
         return $aliases;
     }
 
@@ -136,7 +134,6 @@ final class MakeActionDirective extends AbstractDirective
 
     private function getStub(string $name): string
     {
-        // Correction : chemin correct vers le dossier stubs à la racine du package
         $stubPath = __DIR__ . '/../../stubs/' . $name;
         return $this->files->get($stubPath);
     }

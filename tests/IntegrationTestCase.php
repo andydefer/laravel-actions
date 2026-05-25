@@ -26,6 +26,7 @@ abstract class IntegrationTestCase extends Orchestra
         ];
     }
 
+
     /**
      * Ne pas définir la config ici, sinon mergeConfigFrom n'a plus rien à faire
      */

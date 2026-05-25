@@ -36,7 +36,7 @@ final class MakeActionDirectiveIntegrationTest extends IntegrationTestCase
     {
         $signature = $this->directive->getSignature();
 
-        $this->assertStringContainsString('make:action', $signature);
+        $this->assertStringContainsString('make-action', $signature);
         $this->assertStringContainsString('{name', $signature);
         $this->assertStringContainsString('--type=', $signature);
         $this->assertStringContainsString('--force', $signature);
@@ -53,8 +53,8 @@ final class MakeActionDirectiveIntegrationTest extends IntegrationTestCase
     {
         $aliases = $this->directive->getAliases();
 
-        $this->assertTrue($aliases->contains('action:make'));
-        $this->assertTrue($aliases->contains('create:action'));
+        $this->assertTrue($aliases->contains('action-make'));
+        $this->assertTrue($aliases->contains('create-action'));
         $this->assertSame(2, $aliases->count());
     }
 
@@ -65,12 +65,10 @@ final class MakeActionDirectiveIntegrationTest extends IntegrationTestCase
 
     public function test_execute_with_valid_api_action_returns_success(): void
     {
-        // Simuler les arguments
         $arguments = new ParameterCollection();
         $arguments->add(new ParameterRecord(name: 'name', value: 'TestAction'));
         $this->directive->setArguments($arguments);
 
-        // Simuler les options
         $options = new ParameterCollection();
         $options->add(new ParameterRecord(name: 'type', value: 'api'));
         $options->add(new ParameterRecord(name: 'force', value: false));

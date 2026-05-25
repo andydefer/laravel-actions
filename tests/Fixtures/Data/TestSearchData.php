@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AndyDefer\Actions\Tests\Fixtures\Data;
+
+use AndyDefer\Actions\Data\AbstractData;
+
+final class TestSearchData extends AbstractData
+{
+    public function __construct(
+        public readonly string $searchQuery,
+        public readonly int $currentPage,
+    ) {}
+}

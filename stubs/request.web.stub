@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use AndyDefer\Actions\Http\Requests\AbstractRequest;
+use AndyDefer\Records\Recordable;
+use {{ record_namespace }}\\{{ record_class }};
+
+final class {{ class }} extends AbstractRequest
+{
+    public function rules(): array
+    {
+        return [
+            // Define your validation rules here
+            // Example:
+            // 'email' => ['required', 'email'],
+            // 'name' => ['required', 'string', 'max:255'],
+        ];
+    }
+
+    public function toRecord(array $urlParams = []): Recordable
+    {
+        return new {{ record_class }}(
+            // Map request data to Record properties
+            // Example:
+            // id: $urlParams['id'] ?? null,
+            // email: $this->input('email'),
+            // name: $this->input('name'),
+        );
+    }
+}

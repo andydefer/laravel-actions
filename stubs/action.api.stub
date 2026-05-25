@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use AndyDefer\Actions\Actions\AbstractAction;
+use Illuminate\Http\JsonResponse;
+
+final class {{ class }} extends AbstractAction
+{
+    protected function handle(): JsonResponse
+    {
+        // TODO: Implement your business logic here
+
+        return $this->json(new \App\Data\UserData(
+            id: "1",
+            name: "John Doe",
+            email: "john@example.com",
+        ));
+    }
+}

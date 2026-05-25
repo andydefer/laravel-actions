@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use AndyDefer\Actions\Data\AbstractData;
+use {{ record_namespace }}\\{{ record_class }};
+
+final class {{ class }} extends AbstractData
+{
+    public function __construct(
+        // Define your Data properties here
+        // Example:
+        // public readonly string $id,
+        // public readonly string $email,
+        // public readonly string $name,
+    ) {}
+
+    public static function fromRecord({{ record_class }} $record): self
+    {
+        return new self(
+            // Map Record to Data
+            // Example:
+            // id: $record->id,
+            // email: $record->email,
+            // name: $record->name,
+        );
+    }
+}

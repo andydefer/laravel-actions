@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace {{ namespace }};
 
-use AndyDefer\Actions\Actions\AbstractAction;
+use AndyDefer\Actions\AbstractAction;
 use Inertia\Response as InertiaResponse;
 
 final class {{ class }} extends AbstractAction
@@ -13,6 +13,8 @@ final class {{ class }} extends AbstractAction
     {
         // TODO: Implement your business logic here
 
-        return $this->inertia("Dashboard/Index");
+        return $this->inertia('Dashboard/Index', [
+            'title' => 'Dashboard',
+        ]);
     }
 }

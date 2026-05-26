@@ -52,17 +52,17 @@ final class TestWebAction extends AbstractAction
 
         // Route products/{id}
         if (str_starts_with($request->uri, 'products/') && $request->id) {
-            return $this->html('<h1>Product ' . $request->id . '</h1>', 200);
+            return $this->html('<h1>Product '.$request->id.'</h1>', 200);
         }
 
         // Route users/{userId}/profile
         if (str_contains($request->uri, 'profile') && $request->userId) {
-            return $this->html('<h1>User ' . $request->userId . ' Profile</h1>', 200);
+            return $this->html('<h1>User '.$request->userId.' Profile</h1>', 200);
         }
 
         // Route page/{id}
         if (str_starts_with($request->uri, 'page/') && $request->id) {
-            return $this->html('<h1>Page ' . $request->id . '</h1>', 200);
+            return $this->html('<h1>Page '.$request->id.'</h1>', 200);
         }
 
         // Route cast - doit être AVANT les conditions génériques
@@ -108,6 +108,7 @@ final class TestWebAction extends AbstractAction
             if ($request->ajax) {
                 return $this->json(new TestAjaxData(data: 'ajax response'));
             }
+
             return $this->html('<h1>AJAX Data</h1>', 200);
         }
 

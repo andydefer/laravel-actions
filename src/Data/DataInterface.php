@@ -35,7 +35,7 @@ interface DataInterface
      * Accepts either arrays or objects as source items. For objects, extracts
      * public properties to match the DTO constructor parameters.
      *
-     * @param iterable<object|array> $items Source items to convert
+     * @param  iterable<object|array>  $items  Source items to convert
      * @return array<int, static> Array of DTO instances
      *
      * @throws InvalidArgumentException When an item is neither an object nor an array

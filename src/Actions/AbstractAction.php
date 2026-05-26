@@ -19,10 +19,10 @@ abstract class AbstractAction
      * Template method that defines the execution flow.
      * This method is final and cannot be overridden.
      *
-     * @param Recordable $request The request Record
+     * @param  Recordable  $request  The request Record
      * @return mixed The HTTP response
      */
-    final public function run(Recordable $request = new EmptyRecord()): mixed
+    final public function run(Recordable $request = new EmptyRecord): mixed
     {
         $this->request = $request;
 
@@ -30,6 +30,7 @@ abstract class AbstractAction
             $this->before($request);
             $response = $this->handle($request);
             $this->after(true, null, $request);
+
             return $response;
         } catch (Exception $e) {
             $this->after(false, $e, $request);
@@ -40,7 +41,7 @@ abstract class AbstractAction
     /**
      * Hook called before the main handle() method.
      *
-     * @param Recordable $request The request Record
+     * @param  Recordable  $request  The request Record
      */
     protected function before(Recordable $request): void
     {
@@ -50,7 +51,7 @@ abstract class AbstractAction
     /**
      * Core business logic of the action.
      *
-     * @param Recordable $request The request Record
+     * @param  Recordable  $request  The request Record
      * @return mixed The HTTP response
      */
     abstract protected function handle(Recordable $request): mixed;
@@ -58,19 +59,17 @@ abstract class AbstractAction
     /**
      * Hook called after the main handle() method.
      *
-     * @param bool $success Whether the execution was successful
-     * @param Exception|null $error The exception if execution failed
-     * @param Recordable $request The request Record
+     * @param  bool  $success  Whether the execution was successful
+     * @param  Exception|null  $error  The exception if execution failed
+     * @param  Recordable  $request  The request Record
      */
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord()): void
+    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord): void
     {
         // Override in concrete actions
     }
 
     /**
      * Get the request Record.
-     *
-     * @return Recordable
      */
     public function getRequest(): Recordable
     {

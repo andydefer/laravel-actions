@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Integration\FullStack;
 
-use AndyDefer\Actions\Tests\IntegrationTestCase;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestWebAction;
 use AndyDefer\Actions\Tests\Fixtures\Requests\TestWebRequest;
+use AndyDefer\Actions\Tests\IntegrationTestCase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 
 final class WebActionFlowTest extends IntegrationTestCase
@@ -170,7 +171,7 @@ final class WebActionFlowTest extends IntegrationTestCase
 
         // Créer un cookie non encrypté manuellement
         $response = $this->call('GET', '/cookie-test', [], [
-            'preference' => 'dark-mode'
+            'preference' => 'dark-mode',
         ]);
 
         $response->assertStatus(200);
@@ -231,7 +232,7 @@ final class WebActionFlowTest extends IntegrationTestCase
         });
 
         $response = $this->call('POST', '/upload', [], [], [
-            'file' => new \Illuminate\Http\UploadedFile(
+            'file' => new UploadedFile(
                 $tempFile,
                 'test.txt',
                 'text/plain',

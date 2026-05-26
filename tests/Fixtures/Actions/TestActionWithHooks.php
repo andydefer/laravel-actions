@@ -10,6 +10,7 @@ use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestApiRecord;
+use AndyDefer\Records\EmptyRecord;
 use AndyDefer\Records\Recordable;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -17,9 +18,13 @@ use Illuminate\Http\JsonResponse;
 final class TestActionWithHooks extends AbstractAction
 {
     public bool $beforeCalled = false;
+
     public bool $afterCalled = false;
+
     public bool $afterSuccess = false;
+
     public ?Exception $afterError = null;
+
     public bool $shouldThrow = false;
 
     protected function before(Recordable $request): void
@@ -38,8 +43,8 @@ final class TestActionWithHooks extends AbstractAction
 
         return $this->json(new TestUserData(
             id: (string) $id,
-            name: 'User ' . $id,
-            email: 'user' . $id . '@example.com',
+            name: 'User '.$id,
+            email: 'user'.$id.'@example.com',
             status: TestUserStatus::ACTIVE,
             role: TestUserRole::USER,
             grade: TestUserGrade::BRONZE,
@@ -49,7 +54,7 @@ final class TestActionWithHooks extends AbstractAction
         ));
     }
 
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new \AndyDefer\Records\EmptyRecord()): void
+    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord): void
     {
         $this->afterCalled = true;
         $this->afterSuccess = $success;

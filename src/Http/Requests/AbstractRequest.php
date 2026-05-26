@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Http\Requests;
 
-use AndyDefer\Records\EmptyRecord;
 use AndyDefer\Records\Recordable;
 use Illuminate\Foundation\Http\FormRequest;
 

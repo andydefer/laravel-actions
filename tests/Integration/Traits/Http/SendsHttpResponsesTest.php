@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Integration\Traits\Http;
 
-use AndyDefer\Actions\Tests\IntegrationTestCase;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestAction;
 use AndyDefer\Actions\Tests\Fixtures\Data\TestUserData;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
+use AndyDefer\Actions\Tests\IntegrationTestCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -25,7 +25,7 @@ final class SendsHttpResponsesTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->sut = new TestAction();
+        $this->sut = new TestAction;
 
         // Créer une route nommée pour les tests de redirectRoute
         Route::get('/home', function () {
@@ -213,7 +213,7 @@ final class SendsHttpResponsesTest extends IntegrationTestCase
         $this->assertInstanceOf(BinaryFileResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString(
-            'inline; filename="' . $customFileName . '"',
+            'inline; filename="'.$customFileName.'"',
             $response->headers->get('Content-Disposition')
         );
 
@@ -228,7 +228,7 @@ final class SendsHttpResponsesTest extends IntegrationTestCase
         $response = $this->sut->fileInline($tempFile);
 
         $this->assertStringContainsString(
-            'inline; filename="' . $expectedFileName . '"',
+            'inline; filename="'.$expectedFileName.'"',
             $response->headers->get('Content-Disposition')
         );
 

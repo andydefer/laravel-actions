@@ -11,7 +11,6 @@ use AndyDefer\Actions\Tests\Fixtures\Data\TestUserWithRolesData;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
-use AndyDefer\Actions\Tests\TestCase;
 use AndyDefer\Actions\Tests\UnitTestCase;
 use Carbon\Carbon;
 

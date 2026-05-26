@@ -18,10 +18,9 @@ final class TestApiAction extends AbstractAction
     protected function handle(Recordable $request): JsonResponse
     {
         /** @var TestApiRecord $request */
-
         $id = $request->id ?? 1;
-        $name = $request->name ?? 'User ' . $id;
-        $email = $request->email ?? 'user' . $id . '@example.com';
+        $name = $request->name ?? 'User '.$id;
+        $email = $request->email ?? 'user'.$id.'@example.com';
 
         return $this->json(new TestUserData(
             id: (string) $id,

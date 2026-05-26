@@ -48,7 +48,7 @@ abstract class AbstractData implements DataInterface
     /**
      * Creates an array of Data DTO instances from an iterable source.
      *
-     * @param iterable<object|array> $items Source items to convert
+     * @param  iterable<object|array>  $items  Source items to convert
      * @return array<int, static> Array of DTO instances
      *
      * @throws InvalidArgumentException When an item is neither an object nor an array
@@ -83,7 +83,7 @@ abstract class AbstractData implements DataInterface
      * - Nested Data objects (converted via their toArray method)
      * - DateTime objects (formatted as ISO 8601)
      *
-     * @param mixed $value The value to transform
+     * @param  mixed  $value  The value to transform
      * @return mixed Transformed value ready for array output
      */
     private function transformValue(mixed $value): mixed
@@ -97,11 +97,11 @@ abstract class AbstractData implements DataInterface
         }
 
         if (is_array($value)) {
-            return array_map(fn($item) => $this->transformValue($item), $value);
+            return array_map(fn ($item) => $this->transformValue($item), $value);
         }
 
         if ($value instanceof LaravelCollection) {
-            return $value->map(fn($item) => $this->transformValue($item))->toArray();
+            return $value->map(fn ($item) => $this->transformValue($item))->toArray();
         }
 
         if ($value instanceof DataInterface) {
@@ -121,7 +121,7 @@ abstract class AbstractData implements DataInterface
      * For backed enums, returns the backing value (string|int).
      * For pure enums, returns the enum case name.
      *
-     * @param UnitEnum $enum The enum instance to convert
+     * @param  UnitEnum  $enum  The enum instance to convert
      * @return string|int Scalar representation of the enum
      */
     private function transformEnum(UnitEnum $enum): string|int
@@ -139,7 +139,7 @@ abstract class AbstractData implements DataInterface
      * Used internally by the collect method to convert objects to arrays
      * before instantiating Data DTOs.
      *
-     * @param object $object The source object
+     * @param  object  $object  The source object
      * @return array<string, mixed> Associative array of public property values
      */
     private static function extractPublicProperties(object $object): array

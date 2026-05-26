@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Integration\Actions;
 
-use AndyDefer\Actions\Tests\IntegrationTestCase;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestAction;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestActionWithHooks;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestApiRecord;
+use AndyDefer\Actions\Tests\IntegrationTestCase;
 use AndyDefer\Records\EmptyRecord;
-use Illuminate\Http\JsonResponse;
 use Exception;
+use Illuminate\Http\JsonResponse;
 
 final class AbstractActionIntegrationTest extends IntegrationTestCase
 {
     public function test_action_can_return_json_response(): void
     {
-        $action = new TestAction();
+        $action = new TestAction;
         $request = new TestApiRecord(
             id: 1,
             name: 'John Doe',
@@ -36,7 +36,7 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
     public function test_action_calls_before_hook(): void
     {
-        $action = new TestActionWithHooks();
+        $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
             name: 'John Doe',
@@ -52,7 +52,7 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
     public function test_action_calls_after_hook_with_error_on_exception(): void
     {
-        $action = new TestActionWithHooks();
+        $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
             name: 'John Doe',
@@ -75,7 +75,7 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
     public function test_action_can_get_request(): void
     {
-        $action = new TestAction();
+        $action = new TestAction;
         $request = new TestApiRecord(
             id: 123,
             name: 'John Doe',
@@ -91,16 +91,16 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
     public function test_action_returns_empty_record_when_not_set(): void
     {
-        $action = new TestAction();
+        $action = new TestAction;
 
-        $action->run(new EmptyRecord());
+        $action->run(new EmptyRecord);
 
         $this->assertInstanceOf(EmptyRecord::class, $action->getRequest());
     }
 
     public function test_action_returns_response_with_correct_data_structure(): void
     {
-        $action = new TestAction();
+        $action = new TestAction;
         $request = new TestApiRecord(
             id: 5,
             name: 'Jane Doe',

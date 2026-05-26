@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace {{ namespace }};
+namespace App\Actions;
 
 use AndyDefer\Actions\AbstractAction;
 use Illuminate\Http\JsonResponse;
 
-final class {{ class }} extends AbstractAction
+final class ExistingAction extends AbstractAction
 {
     protected function handle(): JsonResponse
     {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Integration\FullStack;
 
-use AndyDefer\Actions\Tests\IntegrationTestCase;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestApiAction;
 use AndyDefer\Actions\Tests\Fixtures\Requests\TestApiRequest;
+use AndyDefer\Actions\Tests\IntegrationTestCase;
 use Illuminate\Support\Facades\Route;
 
 final class ApiActionFlowTest extends IntegrationTestCase
@@ -26,8 +26,8 @@ final class ApiActionFlowTest extends IntegrationTestCase
         Route::get('/api/users/{id}', function (TestApiRequest $request, TestApiAction $action, $id) {
             return $action->run($request->toRecord(
                 id: (int) $id,
-                name: 'User ' . $id,
-                email: 'user' . $id . '@example.com'
+                name: 'User '.$id,
+                email: 'user'.$id.'@example.com'
             ));
         });
 

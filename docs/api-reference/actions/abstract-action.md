@@ -230,20 +230,33 @@ final class TransferMoneyAction extends AbstractAction
 
 ## Flux d'exécution
 
-```
-run(AbstractRecord)
-    │
-    ├── $this->recordRequest = $recordRequest
-    │
-    ├── try
-    │   ├── before($recordRequest)     ← Hook pré-exécution
-    │   ├── handle($recordRequest)     ← Logique métier (obligatoire)
-    │   ├── after(true, null, ...)     ← Hook succès
-    │   └── return ResponseFactory
-    │
-    └── catch (Exception $e)
-        ├── after(false, $e, ...)      ← Hook échec
-        └── throw $e                   ← Propagation
+```mermaid
+flowchart TD
+    Start([run AbstractRecord]) --> Store[$this->recordRequest = $recordRequest]
+    Store --> Try{try}
+    
+    Try --> Before[before $recordRequest<br/>Hook pré-exécution]
+    Before --> Handle[handle $recordRequest<br/>Logique métier obligatoire]
+    Handle --> AfterSuccess[after true, null<br/>Hook succès]
+    AfterSuccess --> Return[return ResponseFactory]
+    Return --> End([Fin])
+    
+    Try --> Catch{catch Exception $e}
+    Catch --> AfterError[after false, $e<br/>Hook échec]
+    AfterError --> Throw[throw $e<br/>Propagation]
+    Throw --> End
+    
+    style Start fill:#263238,stroke:#000,color:#fff
+    style Store fill:#fff3e0,stroke:#000,color:#333
+    style Try fill:#e3f2fd,stroke:#000,color:#0d47a1
+    style Before fill:#e1f5fe,stroke:#000,color:#01579b
+    style Handle fill:#c8e6c9,stroke:#000,color:#1b5e20
+    style AfterSuccess fill:#e1f5fe,stroke:#000,color:#01579b
+    style Return fill:#c8e6c9,stroke:#000,color:#1b5e20
+    style End fill:#263238,stroke:#000,color:#fff
+    style Catch fill:#ffebee,stroke:#000,color:#b71c1c
+    style AfterError fill:#ffebee,stroke:#000,color:#b71c1c
+    style Throw fill:#ffcdd2,stroke:#000,color:#b71c1c
 ```
 
 ## Gestion des erreurs
@@ -703,10 +716,4 @@ final class ShowUserAction extends AbstractAction
 // Enregistrement de la route
 ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
 ```
-
-## Voir aussi
-
-- `AbstractAction` - Action qui retourne une `ResponseFactory`
-- `AbstractData` - DTO converti automatiquement en tableau camelCase
-- `HttpResponseType` - Enum des types de réponses disponibles
-- `ActionRoute` - Enregistrement automatique des routes
+---

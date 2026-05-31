@@ -181,27 +181,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
 ## Flux d'exécution
 
-```
-Requête HTTP
-    ↓
-Laravel Router → Route::match()
-    ↓
-Closure interne
-    ↓
-Validation des classes (à l'enregistrement)
-    ├── class_exists($requestClass)
-    ├── is_subclass_of($requestClass, AbstractRequest::class)
-    ├── class_exists($actionClass)
-    └── is_subclass_of($actionClass, AbstractAction::class)
-    ↓
-app($requestClass) → Instance de AbstractRequest
-    ↓
-app($actionClass) → Instance de AbstractAction
-    ↓
-$action->run($request->getRecord())
-    ↓
-Réponse HTTP
-```
+<img src="../graphics/action_route_flow.png" alt="Flux d'enregistrement et d'exécution d'une route Action" width="800">
 
 ## Gestion des erreurs
 
@@ -262,10 +242,4 @@ Route::prefix('api/v1')->group(function () {
     ActionRoute::get('/products', ListProductsRequest::class, ListProductsAction::class);
 });
 ```
-
-## Voir aussi
-
-- `AbstractRequest` - Classe de base pour les requêtes (doit être étendue)
-- `AbstractAction` - Classe de base pour les actions (doit être étendue)
-- `AbstractRecord` - Transport de données interne
-- `AbstractData` - Réponse API (camelCase)
+---

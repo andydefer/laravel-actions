@@ -322,34 +322,35 @@ if (!empty($errors)) {
 ```
 
 ## Flux d'exécution
-
-```
-ResponseFactory::json($data, 201)
-    │
-    ├── new self(JSON, $data)
-    ├── $instance->status = 201
-    └── return $instance
-         │
-         ↓ (dans l'Action/contrôleur)
-$instance->withHeaders(['X-Custom' => 'value'])
-         │
-         ↓
-$instance->toResponse()
-         │
-         └── match($type)
-              ├── JSON → response()->json()
-              ├── REDIRECT → redirect()
-              ├── REDIRECT_ROUTE → redirect()->route()
-              ├── REDIRECT_BACK → back()
-              ├── STREAM → response()->stream()
-              ├── SSE → response()->stream() avec headers SSE
-              ├── NO_CONTENT → response('', 204)
-              ├── INERTIA → Inertia::render()
-              ├── HTML → response() avec Content-Type text/html
-              ├── FILE_INLINE → response()->file() avec inline
-              ├── FILE_DOWNLOAD → response()->download()
-              ├── TEXT → response() avec Content-Type text/plain
-              └── VIEW → response()->view()
+```mermaid
+flowchart TD
+    A["ResponseFactory::json()"] --> B["new self"]
+    B --> C["status = 201"]
+    C --> D["return instance"]
+    D --> E["withHeaders()"]
+    E --> F["toResponse()"]
+    F --> G{"match type"}
+    
+    G -->|JSON| H1["JsonResponse"]
+    G -->|REDIRECT| H2["RedirectResponse"]
+    G -->|STREAM/SSE| H3["StreamedResponse"]
+    G -->|FILE| H4["BinaryFileResponse"]
+    G -->|INERTIA| H5["InertiaResponse"]
+    G -->|AUTRES| H6["Response"]
+    
+    style A fill:#ce93d8,stroke:#000,color:#000
+    style B fill:#e1bee7,stroke:#000,color:#000
+    style C fill:#e1bee7,stroke:#000,color:#000
+    style D fill:#e1bee7,stroke:#000,color:#000
+    style E fill:#ffe0b2,stroke:#000,color:#000
+    style F fill:#ffe0b2,stroke:#000,color:#000
+    style G fill:#fff9c4,stroke:#000,color:#000
+    style H1 fill:#81c784,stroke:#000,color:#000
+    style H2 fill:#81c784,stroke:#000,color:#000
+    style H3 fill:#81c784,stroke:#000,color:#000
+    style H4 fill:#81c784,stroke:#000,color:#000
+    style H5 fill:#81c784,stroke:#000,color:#000
+    style H6 fill:#81c784,stroke:#000,color:#000
 ```
 
 ## Gestion des erreurs
@@ -388,6 +389,7 @@ $instance->toResponse()
 | Laravel 10.x | ✅ Complet |
 | Laravel 11.x | ✅ Complet |
 | Laravel 12.x | ✅ Complet |
+| Laravel 13.x | ✅ Complet |
 
 ## Exemple complet
 
@@ -446,10 +448,4 @@ final class ShowUserAction extends AbstractAction
 // Enregistrement de la route
 ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
 ```
-
-## Voir aussi
-
-- `AbstractAction` - Action qui retourne une `ResponseFactory`
-- `AbstractData` - DTO converti automatiquement en tableau camelCase
-- `HttpResponseType` - Énumération des types de réponses disponibles
-- `ActionRoute` - Enregistrement automatique des routes
+---

@@ -10,6 +10,7 @@ use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 
 final class CastWebRequest extends AbstractRequest
 {
+
     public function rules(): array
     {
         return [];

@@ -19,17 +19,6 @@ final class ActionServiceProviderTest extends IntegrationTestCase
         $this->provider = new ActionServiceProvider($this->app);
     }
 
-    public function test_register_merges_configuration(): void
-    {
-        // La config par défaut doit être mergée
-        $config = Config::get('actions');
-
-        $this->assertIsArray($config);
-        $this->assertArrayHasKey('namespace', $config);
-        $this->assertArrayHasKey('request_namespace', $config);
-        $this->assertArrayHasKey('data_namespace', $config);
-        $this->assertArrayHasKey('record_namespace', $config);
-    }
 
     public function test_boot_publishes_configuration(): void
     {

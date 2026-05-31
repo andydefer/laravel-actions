@@ -1,11 +1,13 @@
 # Pint Formatting Test Report
-*Generated: dim. 31 mai 2026 10:43:49 WAT*
+*Generated: dim. 31 mai 2026 11:47:36 WAT*
 
 
-  ..⨯..........⨯.....................................................
+  ⨯.⨯..⨯.......⨯...................................................
 
   ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Laravel  
-    FAIL   .................................................................................................................................................. 67 files, 2 style issues  
-  ⨯ src/Http/ResponseFactory.php                                                                                                             class_attributes_separation, concat_space  
+    FAIL   .................................................................................................................................................. 65 files, 4 style issues  
+  ⨯ src/ActionServiceProvider.php                                                                                                                                         concat_space  
+  ⨯ src/Actions/AbstractAction.php                                                                                  no_trailing_whitespace_in_comment, phpdoc_separation, phpdoc_align  
+  ⨯ src/Http/ResponseFactory.php                                   class_attributes_separation, no_superfluous_phpdoc_tags, concat_space, phpdoc_separation, phpdoc_trim, phpdoc_align  
   ⨯ tests/Integration/Http/ResponseFactoryIntegrationTest.php                                                      function_declaration, fully_qualified_strict_types, ordered_imports  
 

@@ -12,11 +12,16 @@ use AndyDefer\DomainStructures\Utils\EmptyRecord;
 use Exception;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for the AbstractAction base class.
+ *
+ * Verifies the template method lifecycle, hook execution, and request handling.
+ */
 final class AbstractActionTest extends TestCase
 {
     public function test_action_returns_response_factory(): void
     {
-        // Arrange
+        // Arrange: Create action and request record
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 1,
@@ -24,10 +29,10 @@ final class AbstractActionTest extends TestCase
             email: 'john@example.com',
         );
 
-        // Act
+        // Act: Execute the action
         $result = $action->run($request);
 
-        // Assert
+        // Assert: Verify response type and configuration
         $this->assertInstanceOf(ResponseFactory::class, $result);
         $this->assertEquals('json', $result->getType()->value);
         $this->assertEquals(200, $result->getStatus());
@@ -35,7 +40,7 @@ final class AbstractActionTest extends TestCase
 
     public function test_action_calls_before_hook(): void
     {
-        // Arrange
+        // Arrange: Create action with hook tracking
         $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
@@ -43,10 +48,10 @@ final class AbstractActionTest extends TestCase
             email: 'john@example.com',
         );
 
-        // Act
+        // Act: Execute the action
         $action->run($request);
 
-        // Assert
+        // Assert: Verify both before and after hooks were called with success
         $this->assertTrue($action->beforeCalled);
         $this->assertTrue($action->afterCalled);
         $this->assertTrue($action->afterSuccess);
@@ -54,17 +59,16 @@ final class AbstractActionTest extends TestCase
 
     public function test_action_calls_after_hook_with_error_on_exception(): void
     {
-        // Arrange
+        // Arrange: Create action configured to throw an exception
         $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
             name: 'John Doe',
             email: 'john@example.com',
         );
-
         $action->shouldThrow = true;
 
-        // Act & Assert
+        // Act & Assert: Expect exception and verify hook state
         $this->expectException(Exception::class);
 
         try {
@@ -79,7 +83,7 @@ final class AbstractActionTest extends TestCase
 
     public function test_action_can_get_request(): void
     {
-        // Arrange
+        // Arrange: Create action with specific request data
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 123,
@@ -87,12 +91,12 @@ final class AbstractActionTest extends TestCase
             email: 'john@example.com',
         );
 
-        // Act
+        // Act: Execute action and retrieve the stored request
         $action->run($request);
         /** @var TestApiRecord $retrievedRequest */
         $retrievedRequest = $action->getRecordRequest();
 
-        // Assert
+        // Assert: Verify request data was preserved correctly
         $this->assertSame(123, $retrievedRequest->id);
         $this->assertSame('John Doe', $retrievedRequest->name);
         $this->assertSame('john@example.com', $retrievedRequest->email);
@@ -100,19 +104,19 @@ final class AbstractActionTest extends TestCase
 
     public function test_action_returns_empty_record_when_not_set(): void
     {
-        // Arrange
+        // Arrange: Create action without explicit request
         $action = new TestAction;
 
-        // Act
+        // Act: Execute with empty record
         $action->run(new EmptyRecord);
 
-        // Assert
+        // Assert: Verify empty record was used
         $this->assertInstanceOf(EmptyRecord::class, $action->getRecordRequest());
     }
 
     public function test_action_returns_response_factory_with_correct_data(): void
     {
-        // Arrange
+        // Arrange: Create action with test data
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 5,
@@ -120,11 +124,11 @@ final class AbstractActionTest extends TestCase
             email: 'jane@example.com',
         );
 
-        // Act
+        // Act: Execute action and extract response data
         $result = $action->run($request);
         $data = $result->getContent()->toArray();
 
-        // Assert
+        // Assert: Verify all expected data fields are present and correct
         $this->assertSame('5', $data['id']);
         $this->assertSame('Jane Doe', $data['name']);
         $this->assertSame('jane@example.com', $data['email']);
@@ -137,7 +141,7 @@ final class AbstractActionTest extends TestCase
 
     public function test_action_handles_nullable_values(): void
     {
-        // Arrange
+        // Arrange: Create action with null values
         $action = new TestAction;
         $request = new TestApiRecord(
             id: null,
@@ -145,11 +149,11 @@ final class AbstractActionTest extends TestCase
             email: null,
         );
 
-        // Act
+        // Act: Execute action with nulls
         $result = $action->run($request);
         $data = $result->getContent()->toArray();
 
-        // Assert
+        // Assert: Verify default values were applied
         $this->assertSame('1', $data['id']);
         $this->assertSame('Test User 1', $data['name']);
         $this->assertSame('test1@example.com', $data['email']);

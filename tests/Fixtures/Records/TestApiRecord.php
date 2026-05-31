@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Fixtures\Records;
 
-use AndyDefer\Records\AbstractRecord;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 
+/**
+ * @method int getId()
+ * @method string getName()
+ * @method string getEmail()
+ */
 final class TestApiRecord extends AbstractRecord
 {
     public function __construct(
@@ -15,7 +20,7 @@ final class TestApiRecord extends AbstractRecord
         public readonly ?bool $boolTrue = null,
         public readonly ?bool $boolFalse = null,
         public readonly ?string $value = null,
-        public readonly string $name = 'Default User',
-        public readonly string $email = 'default@example.com',
+        public readonly ?string $name = 'Default User',
+        public readonly ?string $email = 'default@example.com',
     ) {}
 }

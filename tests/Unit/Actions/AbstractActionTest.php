@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-namespace AndyDefer\Actions\Tests\Integration\Actions;
+namespace AndyDefer\Actions\Tests\Unit\Actions;
 
+use AndyDefer\Actions\Http\ResponseFactory;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestAction;
 use AndyDefer\Actions\Tests\Fixtures\Actions\TestActionWithHooks;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestApiRecord;
-use AndyDefer\Actions\Tests\IntegrationTestCase;
-use AndyDefer\Records\EmptyRecord;
+use AndyDefer\DomainStructures\Utils\EmptyRecord;
 use Exception;
-use Illuminate\Http\JsonResponse;
+use PHPUnit\Framework\TestCase;
 
-final class AbstractActionIntegrationTest extends IntegrationTestCase
+final class AbstractActionTest extends TestCase
 {
-    public function test_action_can_return_json_response(): void
+    public function test_action_returns_response_factory(): void
     {
+        // Arrange
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 1,
@@ -23,19 +24,18 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
             email: 'john@example.com',
         );
 
-        $response = $action->run($request);
+        // Act
+        $result = $action->run($request);
 
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertSame(200, $response->getStatusCode());
-
-        $data = $response->getData(true);
-        $this->assertArrayHasKey('id', $data);
-        $this->assertArrayHasKey('name', $data);
-        $this->assertArrayHasKey('email', $data);
+        // Assert
+        $this->assertInstanceOf(ResponseFactory::class, $result);
+        $this->assertEquals('json', $result->getType()->value);
+        $this->assertEquals(200, $result->getStatus());
     }
 
     public function test_action_calls_before_hook(): void
     {
+        // Arrange
         $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
@@ -43,8 +43,10 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
             email: 'john@example.com',
         );
 
+        // Act
         $action->run($request);
 
+        // Assert
         $this->assertTrue($action->beforeCalled);
         $this->assertTrue($action->afterCalled);
         $this->assertTrue($action->afterSuccess);
@@ -52,6 +54,7 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
     public function test_action_calls_after_hook_with_error_on_exception(): void
     {
+        // Arrange
         $action = new TestActionWithHooks;
         $request = new TestApiRecord(
             id: 1,
@@ -61,20 +64,22 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
 
         $action->shouldThrow = true;
 
+        // Act & Assert
+        $this->expectException(Exception::class);
+
         try {
             $action->run($request);
-        } catch (Exception $e) {
-            // Exception attendue
+        } finally {
+            $this->assertTrue($action->beforeCalled);
+            $this->assertTrue($action->afterCalled);
+            $this->assertFalse($action->afterSuccess);
+            $this->assertNotNull($action->afterError);
         }
-
-        $this->assertTrue($action->beforeCalled);
-        $this->assertTrue($action->afterCalled);
-        $this->assertFalse($action->afterSuccess);
-        $this->assertNotNull($action->afterError);
     }
 
     public function test_action_can_get_request(): void
     {
+        // Arrange
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 123,
@@ -82,24 +87,32 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
             email: 'john@example.com',
         );
 
+        // Act
         $action->run($request);
+        /** @var TestApiRecord $retrievedRequest */
+        $retrievedRequest = $action->getRecordRequest();
 
-        $this->assertSame(123, $action->getRequest()->id);
-        $this->assertSame('John Doe', $action->getRequest()->name);
-        $this->assertSame('john@example.com', $action->getRequest()->email);
+        // Assert
+        $this->assertSame(123, $retrievedRequest->id);
+        $this->assertSame('John Doe', $retrievedRequest->name);
+        $this->assertSame('john@example.com', $retrievedRequest->email);
     }
 
     public function test_action_returns_empty_record_when_not_set(): void
     {
+        // Arrange
         $action = new TestAction;
 
+        // Act
         $action->run(new EmptyRecord);
 
-        $this->assertInstanceOf(EmptyRecord::class, $action->getRequest());
+        // Assert
+        $this->assertInstanceOf(EmptyRecord::class, $action->getRecordRequest());
     }
 
-    public function test_action_returns_response_with_correct_data_structure(): void
+    public function test_action_returns_response_factory_with_correct_data(): void
     {
+        // Arrange
         $action = new TestAction;
         $request = new TestApiRecord(
             id: 5,
@@ -107,9 +120,11 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
             email: 'jane@example.com',
         );
 
-        $response = $action->run($request);
-        $data = $response->getData(true);
+        // Act
+        $result = $action->run($request);
+        $data = $result->getContent()->toArray();
 
+        // Assert
         $this->assertSame('5', $data['id']);
         $this->assertSame('Jane Doe', $data['name']);
         $this->assertSame('jane@example.com', $data['email']);
@@ -118,5 +133,25 @@ final class AbstractActionIntegrationTest extends IntegrationTestCase
         $this->assertSame(1, $data['grade']);
         $this->assertIsArray($data['tags']);
         $this->assertIsString($data['createdAt']);
+    }
+
+    public function test_action_handles_nullable_values(): void
+    {
+        // Arrange
+        $action = new TestAction;
+        $request = new TestApiRecord(
+            id: null,
+            name: null,
+            email: null,
+        );
+
+        // Act
+        $result = $action->run($request);
+        $data = $result->getContent()->toArray();
+
+        // Assert
+        $this->assertSame('1', $data['id']);
+        $this->assertSame('Test User 1', $data['name']);
+        $this->assertSame('test1@example.com', $data['email']);
     }
 }

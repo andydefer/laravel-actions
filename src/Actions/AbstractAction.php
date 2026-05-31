@@ -4,75 +4,45 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Actions;
 
-use AndyDefer\Actions\Traits\Http\SendsHttpResponses;
-use AndyDefer\Records\EmptyRecord;
-use AndyDefer\Records\Recordable;
+use AndyDefer\Actions\Http\ResponseFactory;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
+use AndyDefer\DomainStructures\Utils\EmptyRecord;
 use Exception;
 
 abstract class AbstractAction
 {
-    use SendsHttpResponses;
+    private AbstractRecord $recordRequest;
 
-    private Recordable $request;
-
-    /**
-     * Template method that defines the execution flow.
-     * This method is final and cannot be overridden.
-     *
-     * @param  Recordable  $request  The request Record
-     * @return mixed The HTTP response
-     */
-    final public function run(Recordable $request = new EmptyRecord): mixed
+    final public function run(AbstractRecord $recordRequest = new EmptyRecord): ResponseFactory
     {
-        $this->request = $request;
+        $this->recordRequest = $recordRequest;
 
         try {
-            $this->before($request);
-            $response = $this->handle($request);
-            $this->after(true, null, $request);
+            $this->before($recordRequest);
+            $response = $this->handle($recordRequest);
+            $this->after(true, null, $recordRequest);
 
             return $response;
         } catch (Exception $e) {
-            $this->after(false, $e, $request);
+            $this->after(false, $e, $recordRequest);
             throw $e;
         }
     }
 
-    /**
-     * Hook called before the main handle() method.
-     *
-     * @param  Recordable  $request  The request Record
-     */
-    protected function before(Recordable $request): void
+    protected function before(AbstractRecord $recordRequest): void
     {
         // Override in concrete actions
     }
 
-    /**
-     * Core business logic of the action.
-     *
-     * @param  Recordable  $request  The request Record
-     * @return mixed The HTTP response
-     */
-    abstract protected function handle(Recordable $request): mixed;
+    abstract protected function handle(AbstractRecord $recordRequest): ResponseFactory;
 
-    /**
-     * Hook called after the main handle() method.
-     *
-     * @param  bool  $success  Whether the execution was successful
-     * @param  Exception|null  $error  The exception if execution failed
-     * @param  Recordable  $request  The request Record
-     */
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord): void
+    protected function after(bool $success, ?Exception $error = null, AbstractRecord $recordRequest = new EmptyRecord): void
     {
         // Override in concrete actions
     }
 
-    /**
-     * Get the request Record.
-     */
-    public function getRequest(): Recordable
+    public function getRecordRequest(): AbstractRecord
     {
-        return $this->request;
+        return $this->recordRequest;
     }
 }

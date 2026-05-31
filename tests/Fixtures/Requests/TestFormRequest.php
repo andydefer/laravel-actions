@@ -6,15 +6,10 @@ namespace AndyDefer\Actions\Tests\Fixtures\Requests;
 
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestUserRecord;
-use AndyDefer\Records\Recordable;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 
 final class TestFormRequest extends AbstractRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
     {
         return [
@@ -35,28 +30,12 @@ final class TestFormRequest extends AbstractRequest
         ];
     }
 
-    protected function prepareForValidation(): void
+    public function getRecord(): AbstractRecord
     {
-        // Trim all string inputs
-        $this->merge([
-            'name' => trim($this->input('name', '')),
-            'email' => trim($this->input('email', '')),
+        return TestUserRecord::from([
+            'id' => (int) ($this->route('id') ?? $this->input('id', 0)),
+            'name' => $this->input('name', ''),
+            'email' => $this->input('email', ''),
         ]);
-    }
-
-    protected function afterValidation($validator): void
-    {
-        if ($this->input('age') && $this->input('age') < 18) {
-            $validator->errors()->add('age', 'User must be at least 18 years old.');
-        }
-    }
-
-    public function toRecord(array $urlParams = []): Recordable
-    {
-        return new TestUserRecord(
-            id: (int) ($urlParams['id'] ?? $this->input('id', 0)),
-            name: $this->input('name', ''),
-            email: $this->input('email', ''),
-        );
     }
 }

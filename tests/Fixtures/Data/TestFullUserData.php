@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Fixtures\Data;
 
-use AndyDefer\Actions\Data\AbstractData;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
+use AndyDefer\DomainStructures\Abstracts\AbstractData;
 
 class TestFullUserData extends AbstractData
 {

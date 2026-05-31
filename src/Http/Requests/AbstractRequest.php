@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Http\Requests;
 
-use AndyDefer\Records\Recordable;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 use Illuminate\Foundation\Http\FormRequest;
 
 abstract class AbstractRequest extends FormRequest
@@ -20,16 +20,8 @@ abstract class AbstractRequest extends FormRequest
     }
 
     /**
-     * Transform the validated request into a Record object.
-     *
-     * This method creates a Record containing ALL the data needed by the Action:
-     * - URL parameters (route parameters)
-     * - Query string parameters
-     * - Request body data
-     * - Authenticated user information
-     * - Request metadata
-     *
-     * @return Recordable The Record object containing all request data
+     * Get the Record associated with this request.
+     * The Record is automatically hydrated from the request data.
      */
-    abstract public function toRecord(): Recordable;
+    abstract public function getRecord(): AbstractRecord;
 }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Fixtures\Data;
 
-use AndyDefer\Actions\Data\AbstractData;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
 use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
+use AndyDefer\DomainStructures\Abstracts\AbstractData;
+use AndyDefer\DomainStructures\Collections\Utility\StringTypedCollection;
 
 class TestUserData extends AbstractData
 {
@@ -19,7 +20,7 @@ class TestUserData extends AbstractData
         public readonly TestUserRole $role,
         public readonly TestUserGrade $grade,
         public readonly ?string $emailVerifiedAt,
-        public readonly array $tags,
+        public readonly StringTypedCollection $tags,
         public readonly string $createdAt,
     ) {}
 }

@@ -30,7 +30,7 @@ Les contrôleurs Laravel traditionnels souffrent de plusieurs défauts :
 // Une action = une route
 final class ShowUserAction extends AbstractAction
 {
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): JsonResponse
     {
         $user = User::find($request->id);
         
@@ -96,7 +96,7 @@ Une Action est une classe qui encapsule la logique d'**une seule route HTTP**.
 │                         ACTION LIFECYCLE                           │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  run(Recordable $request)                                          │
+│  run(AbstractRecord $request)                                          │
 │       │                                                            │
 │       ▼                                                            │
 │  ┌─────────────┐                                                   │
@@ -141,18 +141,18 @@ final class UserAction extends AbstractAction
 // ✅ BON - Type de retour unique
 final class ApiAction extends AbstractAction
 {
-    protected function handle(Recordable $request): JsonResponse { ... }
+    protected function handle(AbstractRecord $request): JsonResponse { ... }
 }
 
 final class WebAction extends AbstractAction
 {
-    protected function handle(Recordable $request): InertiaResponse { ... }
+    protected function handle(AbstractRecord $request): InertiaResponse { ... }
 }
 
 // ❌ MAUVAIS - Union type (interdit)
 final class FlexibleAction extends AbstractAction
 {
-    protected function handle(Recordable $request): JsonResponse|InertiaResponse { ... }
+    protected function handle(AbstractRecord $request): JsonResponse|InertiaResponse { ... }
 }
 ```
 
@@ -208,7 +208,7 @@ declare(strict_types=1);
 
 namespace App\Records;
 
-use AndyDefer\Records\AbstractRecord;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 
 final class ShowUserRecord extends AbstractRecord
 {
@@ -263,7 +263,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\Users;
 
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
-use AndyDefer\Actions\Contracts\Recordable;
+use AndyDefer\Actions\Contracts\AbstractRecord;
 use App\Records\ShowUserRecord;
 
 final class ShowUserRequest extends AbstractRequest
@@ -275,7 +275,7 @@ final class ShowUserRequest extends AbstractRequest
         ];
     }
 
-    public function toRecord(): Recordable
+    public function toRecord(): AbstractRecord
     {
         return new ShowUserRecord(
             id: (int) $this->route('userId'),
@@ -297,7 +297,7 @@ declare(strict_types=1);
 namespace App\Actions\Api\Users;
 
 use AndyDefer\Actions\Actions\AbstractAction;
-use AndyDefer\Records\Recordable;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 use App\Data\UserData;
 use App\Records\ShowUserRecord;
 use App\Models\User;
@@ -305,7 +305,7 @@ use Illuminate\Http\JsonResponse;
 
 final class ShowUserAction extends AbstractAction
 {
-    protected function before(Recordable $request): void
+    protected function before(AbstractRecord $request): void
     {
         /** @var ShowUserRecord $request */
         if ($request->id === 0) {
@@ -313,7 +313,7 @@ final class ShowUserAction extends AbstractAction
         }
     }
 
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): JsonResponse
     {
         /** @var ShowUserRecord $request */
         $user = User::findOrFail($request->id);
@@ -323,7 +323,7 @@ final class ShowUserAction extends AbstractAction
         return $this->json($userData);
     }
 
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord()): void
+    protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
     {
         if ($success) {
             Log::info('User shown successfully');
@@ -356,7 +356,7 @@ Route::get('/users/{userId}', function ($userId, ShowUserRequest $request, ShowU
 `AbstractAction` utilise le pattern **Template Method** pour définir le cycle de vie :
 
 ```
-run(Recordable $request)
+run(AbstractRecord $request)
     ├── before($request)     ← Hook optionnel
     ├── handle($request)     ← Logique métier (obligatoire)
     └── after(true, null, $request) ← Hook optionnel
@@ -376,7 +376,7 @@ final class MyAction extends AbstractAction
      * - Pré-traitement des données
      * - Logging
      */
-    protected function before(Recordable $request): void
+    protected function before(AbstractRecord $request): void
     {
         /** @var MyRecord $request */
         if (!$this->hasLaravel()) {
@@ -394,7 +394,7 @@ final class MyAction extends AbstractAction
      * 
      * Doit retourner un type unique (JsonResponse, InertiaResponse, RedirectResponse...)
      */
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): JsonResponse
     {
         /** @var MyRecord $request */
         $result = $this->service->execute($request);
@@ -411,7 +411,7 @@ final class MyAction extends AbstractAction
      * - Notifications
      * - Métriques
      */
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord()): void
+    protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
     {
         if ($success) {
             Log::info('Action completed successfully');
@@ -451,7 +451,7 @@ Le trait `SendsHttpResponses` fournit toutes les méthodes de réponse HTTP.
 // API - Réponse JSON
 final class ListUsersAction extends AbstractAction
 {
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): JsonResponse
     {
         $users = User::all();
         $usersData = UserData::collect($users);
@@ -463,7 +463,7 @@ final class ListUsersAction extends AbstractAction
 // Web - Réponse Inertia
 final class ShowDashboardAction extends AbstractAction
 {
-    protected function handle(Recordable $request): InertiaResponse
+    protected function handle(AbstractRecord $request): InertiaResponse
     {
         return $this->inertia('Dashboard/Index', [
             'user' => auth()->user(),
@@ -474,7 +474,7 @@ final class ShowDashboardAction extends AbstractAction
 // Téléchargement de fichier
 final class DownloadReportAction extends AbstractAction
 {
-    protected function handle(Recordable $request): BinaryFileResponse
+    protected function handle(AbstractRecord $request): BinaryFileResponse
     {
         $pdf = $this->generatePdf();
         
@@ -501,7 +501,7 @@ final class CreateUserRequest extends AbstractRequest
         ];
     }
     
-    public function toRecord(): Recordable
+    public function toRecord(): AbstractRecord
     {
         return new CreateUserRecord(
             name: $this->input('name'),
@@ -534,7 +534,7 @@ final class CreateUserRecord extends AbstractRecord
 ```php
 final class CreateUserAction extends AbstractAction
 {
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): JsonResponse
     {
         /** @var CreateUserRecord $request */
         
@@ -772,17 +772,17 @@ public function test_action_uses_service(): void
 
 | Méthode | Description |
 |---------|-------------|
-| `final public run(Recordable $request): mixed` | Template method (à ne pas surcharger) |
-| `protected before(Recordable $request): void` | Hook avant exécution |
-| `abstract protected handle(Recordable $request): mixed` | Logique métier (obligatoire) |
-| `protected after(bool $success, ?Exception $error, Recordable $request): void` | Hook après exécution |
-| `public getRequest(): Recordable` | Récupère le Record de la requête |
+| `final public run(AbstractRecord $request): mixed` | Template method (à ne pas surcharger) |
+| `protected before(AbstractRecord $request): void` | Hook avant exécution |
+| `abstract protected handle(AbstractRecord $request): mixed` | Logique métier (obligatoire) |
+| `protected after(bool $success, ?Exception $error, AbstractRecord $request): void` | Hook après exécution |
+| `public getRequest(): AbstractRecord` | Récupère le Record de la requête |
 
 ### AbstractRequest
 
 | Méthode | Description |
 |---------|-------------|
-| `abstract public toRecord(): Recordable` | Transforme la requête HTTP en Record |
+| `abstract public toRecord(): AbstractRecord` | Transforme la requête HTTP en Record |
 | `public authorize(): bool` | Autorisation (défaut: true) |
 | `public rules(): array` | Règles de validation |
 
@@ -834,21 +834,21 @@ final class UserAction extends AbstractAction {
 
 ```php
 // ✅ BON
-protected function handle(Recordable $request): JsonResponse { }
+protected function handle(AbstractRecord $request): JsonResponse { }
 
 // ❌ MAUVAIS
-protected function handle(Recordable $request): JsonResponse|InertiaResponse { }
+protected function handle(AbstractRecord $request): JsonResponse|InertiaResponse { }
 ```
 
 ### 3. Utiliser les hooks pour la maintenance
 
 ```php
-protected function before(Recordable $request): void
+protected function before(AbstractRecord $request): void
 {
     Log::info('Action started');
 }
 
-protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord()): void
+protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
 {
     Log::info('Action finished', ['success' => $success]);
 }
@@ -857,7 +857,7 @@ protected function after(bool $success, ?Exception $error = null, Recordable $re
 ### 4. Typer le Record dans l'Action
 
 ```php
-protected function handle(Recordable $request): JsonResponse
+protected function handle(AbstractRecord $request): JsonResponse
 {
     /** @var ShowUserRecord $request */
     $user = User::find($request->id);
@@ -869,7 +869,7 @@ protected function handle(Recordable $request): JsonResponse
 ### 5. Construire les Records complets dans la Request
 
 ```php
-public function toRecord(): Recordable
+public function toRecord(): AbstractRecord
 {
     return new CreateUserRecord(
         name: $this->input('name'),
@@ -913,7 +913,7 @@ public function test_action_returns_correct_response(): void
 **R:** Utilisez le hook `before()` :
 
 ```php
-protected function before(Recordable $request): void
+protected function before(AbstractRecord $request): void
 {
     if (!auth()->check()) {
         abort(401);
@@ -950,7 +950,7 @@ protected function before(Recordable $request): void
 **R:** Déléguez à des Services, Tasks ou Workers. L'Action ne doit que orchestrer.
 
 ```php
-protected function handle(Recordable $request): JsonResponse
+protected function handle(AbstractRecord $request): JsonResponse
 {
     $this->authorize($request);
     

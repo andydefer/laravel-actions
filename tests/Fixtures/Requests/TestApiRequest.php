@@ -6,7 +6,7 @@ namespace AndyDefer\Actions\Tests\Fixtures\Requests;
 
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestApiRecord;
-use AndyDefer\Records\Recordable;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 
 final class TestApiRequest extends AbstractRequest
 {
@@ -18,25 +18,18 @@ final class TestApiRequest extends AbstractRequest
         ];
     }
 
-    public function toRecord(
-        ?int $id = null,
-        ?int $postId = null,
-        ?float $float = null,
-        ?bool $boolTrue = null,
-        ?bool $boolFalse = null,
-        ?string $value = null,
-        ?string $name = null,
-        ?string $email = null,
-    ): Recordable {
-        return new TestApiRecord(
-            id: $id,
-            postId: $postId,
-            float: $float,
-            boolTrue: $boolTrue,
-            boolFalse: $boolFalse,
-            value: $value,
-            name: $name ?? $this->input('name', 'Default User'),
-            email: $email ?? $this->input('email', 'default@example.com'),
-        );
+    public function getRecord(): AbstractRecord
+    {
+
+        return TestApiRecord::from([
+            'id' => $this->route('id'),
+            'postId' => $this->route('postId'),
+            'float' => $this->input('float'),
+            'boolTrue' => $this->input('boolTrue'),
+            'boolFalse' => $this->input('boolFalse'),
+            'value' => $this->input('value'),
+            'name' => $this->input('name'),
+            'email' => $this->input('email'),
+        ]);
     }
 }

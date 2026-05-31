@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace AndyDefer\Actions\Tests\Fixtures\Actions;
 
 use AndyDefer\Actions\Actions\AbstractAction;
+use AndyDefer\Actions\Http\ResponseFactory;
 use AndyDefer\Actions\Tests\Fixtures\Data\TestUserData;
-use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserGrade;
-use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserRole;
-use AndyDefer\Actions\Tests\Fixtures\Enums\TestUserStatus;
 use AndyDefer\Actions\Tests\Fixtures\Records\TestApiRecord;
-use AndyDefer\Records\EmptyRecord;
-use AndyDefer\Records\Recordable;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
+use AndyDefer\DomainStructures\Utils\EmptyRecord;
 use Exception;
-use Illuminate\Http\JsonResponse;
 
 final class TestActionWithHooks extends AbstractAction
 {
@@ -27,12 +24,12 @@ final class TestActionWithHooks extends AbstractAction
 
     public bool $shouldThrow = false;
 
-    protected function before(Recordable $request): void
+    protected function before(AbstractRecord $request): void
     {
         $this->beforeCalled = true;
     }
 
-    protected function handle(Recordable $request): JsonResponse
+    protected function handle(AbstractRecord $request): ResponseFactory
     {
         if ($this->shouldThrow) {
             throw new Exception('Test exception from handle method');
@@ -41,20 +38,22 @@ final class TestActionWithHooks extends AbstractAction
         /** @var TestApiRecord $request */
         $id = $request->id ?? 1;
 
-        return $this->json(new TestUserData(
-            id: (string) $id,
-            name: 'User '.$id,
-            email: 'user'.$id.'@example.com',
-            status: TestUserStatus::ACTIVE,
-            role: TestUserRole::USER,
-            grade: TestUserGrade::BRONZE,
-            emailVerifiedAt: null,
-            tags: [],
-            createdAt: now()->toIso8601ZuluString(),
-        ));
+        $userData = TestUserData::from([
+            'id' => (string) $id,
+            'name' => 'User '.$id,
+            'email' => 'user'.$id.'@example.com',
+            'status' => 'active',
+            'role' => 'user',
+            'grade' => 1,
+            'emailVerifiedAt' => null,
+            'tags' => [],
+            'createdAt' => now()->toIso8601ZuluString(),
+        ]);
+
+        return ResponseFactory::json($userData);
     }
 
-    protected function after(bool $success, ?Exception $error = null, Recordable $request = new EmptyRecord): void
+    protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord): void
     {
         $this->afterCalled = true;
         $this->afterSuccess = $success;

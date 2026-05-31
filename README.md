@@ -1,48 +1,61 @@
+Après analyse complète de ton projet, voici le fichier `README.md` professionnel pour ton package Laravel Actions.
+
+---
+
 # Laravel Actions
 
-**A lightweight, action-oriented architecture for Laravel applications with template method pattern and typed HTTP responses.**
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
+[![PHP Version Require](https://img.shields.io/packagist/php-v/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
+[![Laravel Version](https://img.shields.io/badge/Laravel-10%2F11%2F12-ff2d20.svg)](https://laravel.com)
+[![License](https://img.shields.io/packagist/l/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-blue)](https://php.net)
-[![Laravel Version](https://img.shields.io/badge/Laravel-10.x%7C11.x%7C12.x-blue)](https://laravel.com)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+## Table des matières
+
+- [Introduction](#introduction)
+- [Philosophie](#philosophie)
+- [Installation](#installation)
+- [Concepts clés](#concepts-clés)
+- [Guide de démarrage](#guide-de-démarrage)
+- [Documentation détaillée](#documentation-détaillée)
+- [Tests](#tests)
+- [Compatibilité](#compatibilité)
+- [License](#license)
 
 ---
 
 ## Introduction
 
-### Le problème
+**Laravel Actions** est un package qui implémente le pattern **ADR (Action-Domain-Responder)** pour Laravel. Il transforme vos contrôleurs en classes d'action simples, testables et maintenables.
 
-Les contrôleurs Laravel traditionnels souffrent de plusieurs défauts :
-
-| Problème | Conséquence |
-|----------|-------------|
-| **God Controllers** | Une classe gère trop de routes différentes |
-| **Type de retour vague** | `mixed` ou `array`, pas de typage fort |
-| **Validation couplée** | La requête est injectée directement |
-| **Testabilité réduite** | Difficile de tester une action isolément |
-| **Réutilisabilité nulle** | La logique est enfermée dans le contrôleur |
-
-### La solution : Laravel Actions
-
-**Laravel Actions** est un package qui impose une architecture action-oriented où **une action = une route = un type de retour**.
+Chaque route HTTP est associée à une **Action** (logique métier) et une **Request** (validation et transformation des données).
 
 ```php
-// Une action = une route
-final class ShowUserAction extends AbstractAction
+// Au lieu d'un contrôleur avec 5 méthodes
+class UserController extends Controller
 {
-    protected function handle(AbstractRecord $request): JsonResponse
-    {
-        $user = User::find($request->id);
-        
-        return $this->json(UserData::fromModel($user));
-    }
+    public function index() { ... }
+    public function show($id) { ... }
+    public function store(Request $request) { ... }
+    // ...
 }
 
-// La route est simple et explicite
-Route::get('/users/{id}', function ($id, ShowUserRequest $request, ShowUserAction $action) {
-    return $action->run($request->toRecord(id: (int) $id));
-});
+// Vous avez 5 classes d'action dédiées
+final class ListUsersAction extends AbstractAction { ... }
+final class ShowUserAction extends AbstractAction { ... }
+final class CreateUserAction extends AbstractAction { ... }
 ```
+
+---
+
+## Philosophie
+
+| Principe | Application dans le package |
+|----------|----------------------------|
+| **Single Responsibility** | Une Action = une route HTTP |
+| **Type Safety** | Records typés entre Request et Action |
+| **Testabilité** | Actions sans helpers globaux, seulement des dépendances injectées |
+| **Immutabilité** | Records et Data DTOs sont readonly |
+| **Template Method** | Cycle de vie `before()` → `handle()` → `after()` |
 
 ---
 
@@ -52,134 +65,78 @@ Route::get('/users/{id}', function ($id, ShowUserRequest $request, ShowUserActio
 composer require andydefer/laravel-actions
 ```
 
-Le package s'enregistre automatiquement via Laravel.
-
-### Prérequis
-
-- PHP 8.1 ou supérieur
-- Laravel 10.x, 11.x ou 12.x
-- Dépendances automatiques :
-  - `andydefer/php-records` (structures typées)
-  - `andydefer/laravel-directive` (CLI)
-  - `inertiajs/inertia-laravel` (optionnel pour les vues Inertia)
-
-### Publication de la configuration (optionnel)
-
-```bash
-php artisan vendor:publish --tag=actions-config
-```
+Le package s'enregistre automatiquement via Laravel's auto-discovery.
 
 ---
 
-## Configuration
+## Concepts clés
+
+### 1. AbstractAction
+
+Classe de base pour toutes vos actions. Implémente le pattern **Template Method**.
 
 ```php
-// config/actions.php
-return [
-    'namespace' => 'App\\Actions',
-    'request_namespace' => 'App\\Http\\Requests',
-    'data_namespace' => 'App\\Data',
-    'record_namespace' => 'App\\Records',
-];
-```
-
----
-
-## Concepts fondamentaux
-
-### L'Action
-
-Une Action est une classe qui encapsule la logique d'**une seule route HTTP**.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         ACTION LIFECYCLE                           │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  run(AbstractRecord $request)                                          │
-│       │                                                            │
-│       ▼                                                            │
-│  ┌─────────────┐                                                   │
-│  │ before()    │ ← Hook optionnel (prétraitement, auth, logs)      │
-│  └─────────────┘                                                   │
-│       │                                                            │
-│       ▼                                                            │
-│  ┌─────────────┐                                                   │
-│  │ handle()    │ ← Logique métier (OBLIGATOIRE)                    │
-│  └─────────────┘                                                   │
-│       │                                                            │
-│       ▼                                                            │
-│  ┌─────────────┐                                                   │
-│  │ after()     │ ← Hook optionnel (nettoyage, notifications)       │
-│  └─────────────┘                                                   │
-│       │                                                            │
-│       ▼                                                            │
-│  Retourne une réponse HTTP (JsonResponse|InertiaResponse|etc.)     │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Une Action = Une Route
-
-```php
-// ✅ BON - Action dédiée à une route
-final class ListUsersAction extends AbstractAction { ... }   // GET /users
-final class ShowUserAction extends AbstractAction { ... }   // GET /users/{id}
-final class CreateUserAction extends AbstractAction { ... } // POST /users
-
-// ❌ MAUVAIS - Action réutilisée pour plusieurs routes
-final class UserAction extends AbstractAction
-{
-    public function list() { ... }   // GET /users
-    public function show() { ... }   // GET /users/{id}
-}
-```
-
-### Une Action = Un Type de Retour
-
-```php
-// ✅ BON - Type de retour unique
-final class ApiAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): JsonResponse { ... }
-}
-
-final class WebAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): InertiaResponse { ... }
-}
-
-// ❌ MAUVAIS - Union type (interdit)
-final class FlexibleAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): JsonResponse|InertiaResponse { ... }
-}
-```
-
-### Le Record
-
-Le Record est un DTO typé qui contient **TOUTES** les données de la requête :
-- Paramètres d'URL
-- Données du formulaire
-- Paramètres query string
-- Utilisateur authentifié
-- Métadonnées
-
-```php
-// Un Record est une classe simple avec des propriétés publiques typées
-final class ShowUserRecord extends AbstractRecord
+final class CreateUserAction extends AbstractAction
 {
     public function __construct(
-        public readonly int $id,
-        public readonly bool $includePosts = false,
-        public readonly ?string $search = null,
+        private readonly UserRepositoryInterface $users
+    ) {}
+    
+    protected function handle(AbstractRecord $request): ResponseFactory
+    {
+        $user = $this->users->create($request->toArray());
+        return ResponseFactory::json(UserData::from($user), 201);
+    }
+}
+```
+
+**Cycle de vie :**
+```
+run(Record) → before() → handle() → after() → ResponseFactory
+```
+
+### 2. AbstractRequest
+
+Classe de base pour vos requêtes. Étend `FormRequest` de Laravel.
+
+```php
+final class CreateUserRequest extends AbstractRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users'],
+        ];
+    }
+    
+    public function getRecord(): AbstractRecord
+    {
+        return CreateUserRecord::from([
+            'name' => $this->input('name'),
+            'email' => $this->input('email'),
+        ]);
+    }
+}
+```
+
+### 3. AbstractRecord
+
+DTO typé pour transporter les données entre la Request et l'Action.
+
+```php
+final class CreateUserRecord extends AbstractRecord
+{
+    public function __construct(
+        public readonly string $name,
+        public readonly string $email,
     ) {}
 }
 ```
 
-### La Data (DTO de réponse)
+### 4. AbstractData
 
-La Data est un DTO utilisé exclusivement pour les réponses JSON.
+DTO immutable pour les réponses HTTP (converti automatiquement en camelCase).
 
 ```php
 final class UserData extends AbstractData
@@ -188,21 +145,43 @@ final class UserData extends AbstractData
         public readonly string $id,
         public readonly string $name,
         public readonly string $email,
-        public readonly ?string $avatar = null,
     ) {}
 }
 ```
 
----
+### 5. ResponseFactory
 
-## Créer votre première Action
-
-### 1. Créer le Record
+Factory pour construire des réponses HTTP de manière déclarative.
 
 ```php
-<?php
+return ResponseFactory::json($userData);           // JSON API
+return ResponseFactory::inertia('Dashboard/Index'); // Inertia SPA
+return ResponseFactory::redirectRoute('home');     // Redirection
+return ResponseFactory::noContent();               // 204 No Content
+return ResponseFactory::fileDownload($path);       // Téléchargement
+```
 
+### 6. ActionRoute
+
+Enregistrement simplifié des routes.
+
+```php
+ActionRoute::get('/api/users', ListUsersRequest::class, ListUsersAction::class);
+ActionRoute::post('/api/users', CreateUserRequest::class, CreateUserAction::class);
+ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
+ActionRoute::put('/api/users/{id}', UpdateUserRequest::class, UpdateUserAction::class);
+ActionRoute::delete('/api/users/{id}', DeleteUserRequest::class, DeleteUserAction::class);
+```
+
+---
+
+## Guide de démarrage
+
+### Étape 1 : Créer un Record
+
+```php
 // app/Records/ShowUserRecord.php
+<?php
 
 declare(strict_types=1);
 
@@ -214,756 +193,149 @@ final class ShowUserRecord extends AbstractRecord
 {
     public function __construct(
         public readonly int $id,
-        public readonly bool $includePosts = false,
     ) {}
 }
 ```
 
-### 2. Créer la Data (DTO de réponse)
+### Étape 2 : Créer une Request
 
 ```php
+// app/Http/Requests/ShowUserRequest.php
 <?php
-
-// app/Data/UserData.php
 
 declare(strict_types=1);
 
-namespace App\Data;
-
-use AndyDefer\Actions\Data\AbstractData;
-
-final class UserData extends AbstractData
-{
-    public function __construct(
-        public readonly string $id,
-        public readonly string $name,
-        public readonly string $email,
-    ) {}
-
-    public static function fromModel(User $user): self
-    {
-        return new self(
-            id: (string) $user->id,
-            name: $user->name,
-            email: $user->email,
-        );
-    }
-}
-```
-
-### 3. Créer la Request
-
-```php
-<?php
-
-// app/Http/Requests/Api/Users/ShowUserRequest.php
-
-declare(strict_types=1);
-
-namespace App\Http\Requests\Api\Users;
+namespace App\Http\Requests;
 
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
-use AndyDefer\Actions\Contracts\AbstractRecord;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
 use App\Records\ShowUserRecord;
 
 final class ShowUserRequest extends AbstractRequest
 {
     public function rules(): array
     {
-        return [
-            'include_posts' => ['sometimes', 'boolean'],
-        ];
-    }
-
-    public function toRecord(): AbstractRecord
-    {
-        return new ShowUserRecord(
-            id: (int) $this->route('userId'),
-            includePosts: $this->boolean('include_posts'),
-        );
-    }
-}
-```
-
-### 4. Créer l'Action
-
-```php
-<?php
-
-// app/Actions/Api/Users/ShowUserAction.php
-
-declare(strict_types=1);
-
-namespace App\Actions\Api\Users;
-
-use AndyDefer\Actions\Actions\AbstractAction;
-use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
-use App\Data\UserData;
-use App\Records\ShowUserRecord;
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
-
-final class ShowUserAction extends AbstractAction
-{
-    protected function before(AbstractRecord $request): void
-    {
-        /** @var ShowUserRecord $request */
-        if ($request->id === 0) {
-            throw new \InvalidArgumentException('Invalid user ID');
-        }
-    }
-
-    protected function handle(AbstractRecord $request): JsonResponse
-    {
-        /** @var ShowUserRecord $request */
-        $user = User::findOrFail($request->id);
-        
-        $userData = UserData::fromModel($user);
-        
-        return $this->json($userData);
-    }
-
-    protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
-    {
-        if ($success) {
-            Log::info('User shown successfully');
-        } else {
-            Log::error('Failed to show user', ['error' => $error?->getMessage()]);
-        }
-    }
-}
-```
-
-### 5. Définir la route
-
-```php
-// routes/api.php
-
-use App\Actions\Api\Users\ShowUserAction;
-use App\Http\Requests\Api\Users\ShowUserRequest;
-
-Route::get('/users/{userId}', function ($userId, ShowUserRequest $request, ShowUserAction $action) {
-    return $action->run($request->toRecord());
-});
-```
-
----
-
-## Le cycle de vie d'une Action
-
-### Template Method Pattern
-
-`AbstractAction` utilise le pattern **Template Method** pour définir le cycle de vie :
-
-```
-run(AbstractRecord $request)
-    ├── before($request)     ← Hook optionnel
-    ├── handle($request)     ← Logique métier (obligatoire)
-    └── after(true, null, $request) ← Hook optionnel
-```
-
-### Hooks disponibles
-
-```php
-final class MyAction extends AbstractAction
-{
-    /**
-     * Hook appelé AVANT l'exécution.
-     * 
-     * Utilisation :
-     * - Vérifications d'authentification
-     * - Validation d'autorisation
-     * - Pré-traitement des données
-     * - Logging
-     */
-    protected function before(AbstractRecord $request): void
-    {
-        /** @var MyRecord $request */
-        if (!$this->hasLaravel()) {
-            throw new \RuntimeException('Laravel not available');
-        }
-        
-        $user = $this->getLaravel()->make('auth')->user();
-        if (!$user->can('view', $request->resourceId)) {
-            abort(403);
-        }
+        return []; // Aucune validation spécifique
     }
     
-    /**
-     * Logique métier de l'action (OBLIGATOIRE).
-     * 
-     * Doit retourner un type unique (JsonResponse, InertiaResponse, RedirectResponse...)
-     */
-    protected function handle(AbstractRecord $request): JsonResponse
+    public function getRecord(): AbstractRecord
     {
-        /** @var MyRecord $request */
-        $result = $this->service->execute($request);
-        
-        return $this->json(MyData::fromRecord($result));
-    }
-    
-    /**
-     * Hook appelé APRÈS l'exécution.
-     * 
-     * Utilisation :
-     * - Nettoyage
-     * - Post-traitement
-     * - Notifications
-     * - Métriques
-     */
-    protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
-    {
-        if ($success) {
-            Log::info('Action completed successfully');
-        } else {
-            Log::error('Action failed', ['error' => $error?->getMessage()]);
-            $this->notifyAdmin($error);
-        }
-    }
-}
-```
-
----
-
-## Les types de réponses (SendsHttpResponses)
-
-Le trait `SendsHttpResponses` fournit toutes les méthodes de réponse HTTP.
-
-| Méthode | Description | Retour |
-|---------|-------------|--------|
-| `json(DataInterface $data, int $code = 200)` | Réponse JSON pour API | `JsonResponse` |
-| `redirect(string $url, int $code = 302)` | Redirection HTTP | `RedirectResponse` |
-| `redirectRoute(string $route, array $parameters = [], int $code = 302)` | Redirection vers route nommée | `RedirectResponse` |
-| `redirectBack(int $code = 302)` | Redirection vers page précédente | `RedirectResponse` |
-| `stream(callable $callback, string $contentType, int $code = 200)` | Streaming de données | `StreamedResponse` |
-| `sse(callable $callback)` | Server-Sent Events | `StreamedResponse` |
-| `noContent()` | Réponse 204 | `Response` |
-| `inertia(string $component, array $props = [])` | Réponse Inertia.js | `InertiaResponse` |
-| `html(string $html, int $code = 200)` | HTML brut | `Response` |
-| `fileInline(string $filePath, ?string $fileName = null)` | Affichage de fichier | `BinaryFileResponse` |
-| `fileDownload(string $filePath, ?string $fileName = null)` | Téléchargement | `BinaryFileResponse` |
-| `text(string $content, int $code = 200)` | Texte brut | `Response` |
-| `view(string $view, array $data = [], int $code = 200)` | Vue Blade | `Response` |
-
-### Exemples d'utilisation
-
-```php
-// API - Réponse JSON
-final class ListUsersAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): JsonResponse
-    {
-        $users = User::all();
-        $usersData = UserData::collect($users);
-        
-        return $this->json($usersData);
-    }
-}
-
-// Web - Réponse Inertia
-final class ShowDashboardAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): InertiaResponse
-    {
-        return $this->inertia('Dashboard/Index', [
-            'user' => auth()->user(),
+        return ShowUserRecord::from([
+            'id' => (int) $this->route('id'),
         ]);
     }
 }
-
-// Téléchargement de fichier
-final class DownloadReportAction extends AbstractAction
-{
-    protected function handle(AbstractRecord $request): BinaryFileResponse
-    {
-        $pdf = $this->generatePdf();
-        
-        return $this->fileDownload($pdf, 'report.pdf');
-    }
-}
 ```
 
----
-
-## Le payload : passer des paramètres typés
-
-### Construction du Record dans la Request
+### Étape 3 : Créer un Data DTO
 
 ```php
-final class CreateUserRequest extends AbstractRequest
-{
-    public function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users'],
-            'role' => ['sometimes', 'string', 'in:admin,user'],
-        ];
-    }
-    
-    public function toRecord(): AbstractRecord
-    {
-        return new CreateUserRecord(
-            name: $this->input('name'),
-            email: $this->input('email'),
-            role: $this->input('role', 'user'),
-            ip: $this->ip(),
-            userAgent: $this->userAgent(),
-        );
-    }
-}
-```
+// app/Data/UserData.php
+<?php
 
-### Le Record
+declare(strict_types=1);
 
-```php
-final class CreateUserRecord extends AbstractRecord
+namespace App\Data;
+
+use AndyDefer\DomainStructures\Abstracts\AbstractData;
+
+final class UserData extends AbstractData
 {
     public function __construct(
+        public readonly int $id,
         public readonly string $name,
         public readonly string $email,
-        public readonly string $role = 'user',
-        public readonly ?string $ip = null,
-        public readonly ?string $userAgent = null,
     ) {}
 }
 ```
 
-### Utilisation dans l'Action
+### Étape 4 : Créer une Action
 
 ```php
-final class CreateUserAction extends AbstractAction
+// app/Actions/ShowUserAction.php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions;
+
+use AndyDefer\Actions\Actions\AbstractAction;
+use AndyDefer\Actions\Http\ResponseFactory;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
+use App\Data\UserData;
+use App\Models\User;
+
+final class ShowUserAction extends AbstractAction
 {
-    protected function handle(AbstractRecord $request): JsonResponse
+    protected function handle(AbstractRecord $request): ResponseFactory
     {
-        /** @var CreateUserRecord $request */
+        /** @var ShowUserRecord $request */
+        $user = User::findOrFail($request->id);
         
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ]);
-        
-        Log::info("User created from IP: {$request->ip}");
-        
-        return $this->json(UserData::fromModel($user), 201);
+        return ResponseFactory::json(UserData::from([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]));
     }
 }
 ```
 
----
-
-## Enregistrer les routes
-
-### Syntaxe explicite (recommandée)
+### Étape 5 : Enregistrer la route
 
 ```php
 // routes/api.php
+use AndyDefer\Actions\Support\ActionRoute;
+use App\Http\Requests\ShowUserRequest;
+use App\Actions\ShowUserAction;
 
-use App\Actions\Api\Users\ListUsersAction;
-use App\Actions\Api\Users\ShowUserAction;
-use App\Actions\Api\Users\CreateUserAction;
-use App\Http\Requests\Api\Users\ListUsersRequest;
-use App\Http\Requests\Api\Users\ShowUserRequest;
-use App\Http\Requests\Api\Users\CreateUserRequest;
-
-// GET /api/users
-Route::get('/users', function (ListUsersRequest $request, ListUsersAction $action) {
-    return $action->run($request->toRecord());
-});
-
-// GET /api/users/{userId}
-Route::get('/users/{userId}', function ($userId, ShowUserRequest $request, ShowUserAction $action) {
-    return $action->run($request->toRecord());
-});
-
-// POST /api/users
-Route::post('/users', function (CreateUserRequest $request, CreateUserAction $action) {
-    return $action->run($request->toRecord());
-});
-```
-
-### Avec paramètres d'URL multiples
-
-```php
-Route::get('/users/{userId}/posts/{postId}', function ($userId, $postId, ShowUserPostRequest $request, ShowUserPostAction $action) {
-    return $action->run($request->toRecord(userId: (int) $userId, postId: (int) $postId));
-});
-```
-
-### Routes web (Inertia)
-
-```php
-// routes/web.php
-
-use App\Actions\Web\Dashboard\ShowDashboardAction;
-use App\Http\Requests\Web\Dashboard\ShowDashboardRequest;
-
-Route::get('/dashboard', function (ShowDashboardRequest $request, ShowDashboardAction $action) {
-    return $action->run($request->toRecord());
-});
+ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
 ```
 
 ---
 
-## Directive CLI pour générer les fichiers
+## Documentation détaillée
 
-### Créer une Action
+| Composant | Documentation |
+|-----------|---------------|
+| `AbstractAction` | [Voir la documentation](docs/api-reference/actions/abstract-action.md) |
+| `AbstractRequest` | [Voir la documentation](docs/api-reference/http/abstract-request.md) |
+| `EmptyRequest` | [Voir la documentation](docs/api-reference/http/empty-request.md) |
+| `ResponseFactory` | [Voir la documentation](docs/api-reference/http/response-factory.md) |
+| `ActionRoute` | [Voir la documentation](docs/api-reference/support/action-route.md) |
+| `HttpResponseType` | [Voir la documentation](docs/api-reference/enums/http-response-type.md) |
+
+---
+
+## Tests
 
 ```bash
-# Créer une Action API
-./vendor/bin/directive make:action Users/ShowUserAction --type=api
-
-# Créer une Action Web
-./vendor/bin/directive make:action Dashboard/ShowDashboardAction --type=web
-
-# Forcer l'écrasement
-./vendor/bin/directive make:action Users/ShowUserAction --type=api --force
+composer test
 ```
 
-### Ce que la directive génère
+Le package utilise PHPUnit avec deux types de tests :
 
-```
-app/
-├── Actions/
-│   └── Users/
-│       └── ShowUserAction.php
-```
-
-### Stubs personnalisables
-
-Les stubs se trouvent dans `vendor/andydefer/laravel-actions/stubs/` :
-
-| Stub | Utilisation |
-|------|-------------|
-| `action.api.stub` | Action API (JsonResponse) |
-| `action.web.stub` | Action Web (InertiaResponse) |
+- **Unit tests** : Tests rapides et isolés (`tests/Unit/`)
+- **Integration tests** : Tests avec Laravel booté (`tests/Integration/`)
 
 ---
 
-## Tests unitaires et d'intégration
+## Compatibilité
 
-### Règle d'or
-
-> **⚠️ Les Actions sont testées exclusivement via des tests d'intégration (Feature tests). Pas de tests unitaires pour les Actions.**
-
-```php
-<?php
-
-namespace Tests\Feature\Actions\Api\Users;
-
-use Tests\TestCase;
-use App\Models\User;
-
-final class ShowUserActionTest extends TestCase
-{
-    public function test_show_user_returns_user_data(): void
-    {
-        $user = User::factory()->create([
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-        ]);
-        
-        $response = $this->actingAs($user)
-            ->getJson("/api/users/{$user->id}");
-        
-        $response->assertStatus(200);
-        $response->assertJson([
-            'id' => (string) $user->id,
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-        ]);
-    }
-    
-    public function test_show_user_returns_404_when_not_found(): void
-    {
-        $user = User::factory()->create();
-        
-        $response = $this->actingAs($user)
-            ->getJson('/api/users/99999');
-        
-        $response->assertStatus(404);
-    }
-}
-```
-
-### Tester une Action avec des mocks
-
-```php
-public function test_action_uses_service(): void
-{
-    $service = $this->mock(UserService::class);
-    $service->shouldReceive('getUser')
-        ->once()
-        ->with(123)
-        ->andReturn($expectedUser);
-    
-    $response = $this->getJson('/api/users/123');
-    
-    $response->assertStatus(200);
-}
-```
+| Version | Laravel | PHP |
+|---------|---------|-----|
+| 1.x | 10.x, 11.x, 12.x | 8.1+ |
+| 2.x | 10.x, 11.x, 12.x | 8.2+ |
 
 ---
 
-## Architecture technique
-
-### Diagramme d'architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           LARAVEL ACTIONS PACKAGE                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                         HTTP LAYER                                   │   │
-│  │                                                                      │   │
-│  │  Route → Closure → Request → Record → Action → Response             │   │
-│  │                                                                      │   │
-│  │  Route::get('/users/{id}', function ($id, Request $req, Action $act) │   │
-│  │      return $act->run($req->toRecord());                             │   │
-│  │  });                                                                 │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                       │
-│                                    ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                         ABSTRACTION LAYER                            │   │
-│  │                                                                      │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                  │   │
-│  │  │AbstractAction│  │AbstractRequest│  │ AbstractData │               │   │
-│  │  │ - run()     │  │ - toRecord() │  │ - toArray()  │                  │   │
-│  │  │ - before()  │  │ - rules()    │  │ - collect()  │                  │   │
-│  │  │ - handle()  │  │ - authorize()│  │              │                  │   │
-│  │  │ - after()   │  └─────────────┘  └─────────────┘                  │   │
-│  │  └─────────────┘                                                     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                       │
-│                                    ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                         RESPONSE LAYER                               │   │
-│  │                                                                      │   │
-│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
-│  │  │                    SendsHttpResponses                        │    │   │
-│  │  │  - json()       - redirect()    - inertia()                  │    │   │
-│  │  │  - stream()     - sse()         - html()                     │    │   │
-│  │  │  - fileInline() - fileDownload() - text()                    │    │   │
-│  │  │  - view()       - noContent()    - redirectRoute()           │    │   │
-│  │  └─────────────────────────────────────────────────────────────┘    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Composants
-
-| Composant | Rôle |
-|-----------|------|
-| `AbstractAction` | Classe de base avec template method (before → handle → after) |
-| `AbstractRequest` | Classe de base pour les Form Requests avec `toRecord()` |
-| `SendsHttpResponses` | Trait avec toutes les méthodes de réponse HTTP |
-| `AbstractData` | Base pour les DTO de réponse (JSON) |
-| `MakeActionDirective` | Directive CLI pour générer les Actions |
-
----
-
-## API Reference
-
-### AbstractAction
-
-| Méthode | Description |
-|---------|-------------|
-| `final public run(AbstractRecord $request): mixed` | Template method (à ne pas surcharger) |
-| `protected before(AbstractRecord $request): void` | Hook avant exécution |
-| `abstract protected handle(AbstractRecord $request): mixed` | Logique métier (obligatoire) |
-| `protected after(bool $success, ?Exception $error, AbstractRecord $request): void` | Hook après exécution |
-| `public getRequest(): AbstractRecord` | Récupère le Record de la requête |
-
-### AbstractRequest
-
-| Méthode | Description |
-|---------|-------------|
-| `abstract public toRecord(): AbstractRecord` | Transforme la requête HTTP en Record |
-| `public authorize(): bool` | Autorisation (défaut: true) |
-| `public rules(): array` | Règles de validation |
-
-### SendsHttpResponses
-
-| Méthode | Retour | Description |
-|---------|--------|-------------|
-| `json(DataInterface $data, int $code = 200)` | `JsonResponse` | Réponse JSON pour API |
-| `redirect(string $url, int $code = 302)` | `RedirectResponse` | Redirection HTTP |
-| `inertia(string $component, array $props = [])` | `InertiaResponse` | Réponse Inertia.js |
-| `html(string $html, int $code = 200)` | `Response` | HTML brut |
-| `view(string $view, array $data = [], int $code = 200)` | `Response` | Vue Blade |
-| `noContent()` | `Response` | 204 No Content |
-| `text(string $content, int $code = 200)` | `Response` | Texte brut |
-| `fileDownload(string $filePath, ?string $fileName)` | `BinaryFileResponse` | Téléchargement |
-| `fileInline(string $filePath, ?string $fileName)` | `BinaryFileResponse` | Affichage de fichier |
-| `stream(callable $callback, string $contentType, int $code)` | `StreamedResponse` | Streaming |
-| `sse(callable $callback)` | `StreamedResponse` | Server-Sent Events |
-| `redirectRoute(string $route, array $params, int $code)` | `RedirectResponse` | Redirection nommée |
-| `redirectBack(int $code)` | `RedirectResponse` | Retour page précédente |
-
-### MakeActionDirective (CLI)
-
-| Option | Description | Défaut |
-|--------|-------------|--------|
-| `name` | Nom de l'Action (ex: Users/ShowUserAction) | Requis |
-| `--type` | Type d'Action (`api` ou `web`) | `api` |
-| `--force` | Écrase les fichiers existants | `false` |
-
----
-
-## Bonnes pratiques
-
-### 1. Une Action par route
-
-```php
-// ✅ BON
-final class ListUsersAction extends AbstractAction { }
-final class ShowUserAction extends AbstractAction { }
-
-// ❌ MAUVAIS
-final class UserAction extends AbstractAction {
-    public function list() { }
-    public function show() { }
-}
-```
-
-### 2. Type de retour unique
-
-```php
-// ✅ BON
-protected function handle(AbstractRecord $request): JsonResponse { }
-
-// ❌ MAUVAIS
-protected function handle(AbstractRecord $request): JsonResponse|InertiaResponse { }
-```
-
-### 3. Utiliser les hooks pour la maintenance
-
-```php
-protected function before(AbstractRecord $request): void
-{
-    Log::info('Action started');
-}
-
-protected function after(bool $success, ?Exception $error = null, AbstractRecord $request = new EmptyRecord()): void
-{
-    Log::info('Action finished', ['success' => $success]);
-}
-```
-
-### 4. Typer le Record dans l'Action
-
-```php
-protected function handle(AbstractRecord $request): JsonResponse
-{
-    /** @var ShowUserRecord $request */
-    $user = User::find($request->id);
-    
-    return $this->json(UserData::fromModel($user));
-}
-```
-
-### 5. Construire les Records complets dans la Request
-
-```php
-public function toRecord(): AbstractRecord
-{
-    return new CreateUserRecord(
-        name: $this->input('name'),
-        email: $this->input('email'),
-        ip: $this->ip(),           // ← Métadonnées HTTP
-        userAgent: $this->userAgent(),
-        timestamp: now()->toIso8601ZuluString(),
-    );
-}
-```
-
-### 6. Tester via les requêtes HTTP
-
-```php
-public function test_action_returns_correct_response(): void
-{
-    $response = $this->getJson('/api/users/1');
-    
-    $response->assertStatus(200);
-    $response->assertJsonStructure(['id', 'name', 'email']);
-}
-```
-
----
-
-## FAQ
-
-### Q: Pourquoi une Action par route ?
-
-**R:** Pour respecter le principe de responsabilité unique (SRP). Chaque route a sa propre logique, modification sans impacter les autres.
-
-### Q: Pourquoi l'Action ne reçoit pas directement la Request ?
-
-**R:** Pour découpler l'Action de Laravel. Une Action reçoit un Record (simple DTO), ce qui la rend :
-- Testable sans Laravel
-- Réutilisable dans d'autres contextes (console, jobs)
-- Avec un contrat explicite
-
-### Q: Comment gérer l'authentification ?
-
-**R:** Utilisez le hook `before()` :
-
-```php
-protected function before(AbstractRecord $request): void
-{
-    if (!auth()->check()) {
-        abort(401);
-    }
-    
-    if (!auth()->user()->can('view', $request->id)) {
-        abort(403);
-    }
-}
-```
-
-### Q: Comment gérer les erreurs de validation ?
-
-**R:** Laravel gère automatiquement les erreurs de validation via le Form Request. Le client recevra une réponse 422.
-
-### Q: Peut-on utiliser ce package sans Inertia ?
-
-**R:** Oui, Inertia est optionnel. Utilisez `view()` ou `html()` pour les réponses web classiques.
-
-### Q: Comment générer rapidement une Action ?
-
-**R:** Utilisez la directive CLI :
-
-```bash
-./vendor/bin/directive make:action Users/ShowUserAction --type=api
-```
-
-### Q: Les tests des Actions doivent être en unitaire ou intégration ?
-
-**R:** **Toujours en intégration** (Feature tests) car les Actions retournent des réponses HTTP complètes.
-
-### Q: Où placer la logique métier complexe ?
-
-**R:** Déléguez à des Services, Tasks ou Workers. L'Action ne doit que orchestrer.
-
-```php
-protected function handle(AbstractRecord $request): JsonResponse
-{
-    $this->authorize($request);
-    
-    $result = $this->service->execute($request);
-    
-    $this->logger->info('Action completed');
-    
-    return $this->json(ResultData::fromRecord($result));
-}
-```
-
----
-
-## Licence
+## License
 
 MIT © [Andy Defer](https://github.com/andydefer)
+
+---
+
+## Crédits
+
+- Pattern ADR inspiré par [Paul M. Jones](https://github.com/pmjones)
+- Template Method pattern issu de Gamma et al. "Design Patterns"

@@ -1,7 +1,3 @@
-Après analyse complète de ton projet, voici le fichier `README.md` professionnel pour ton package Laravel Actions.
-
----
-
 # Laravel Actions
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)

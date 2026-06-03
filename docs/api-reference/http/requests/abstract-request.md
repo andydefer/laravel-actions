@@ -195,40 +195,7 @@ final class DashboardRequest extends AbstractRequest
 
 ## Flux d'exécution
 
-```mermaid
-flowchart TD
-    start["Requête HTTP entrante"]
-    router["Laravel Router → ActionRoute"]
-    container["app(AbstractRequest)<br/>Résolution par le conteneur"]
-    authorize["authorize()<br/>Vérification des droits"]
-    authorize_fail["Exception 403"]
-    rules["rules()<br/>Règles de validation"]
-    rules_fail["ValidationException 422"]
-    getrecord["getRecord()<br/>Transformation en Record"]
-    record["AbstractRecord (typé)"]
-    action["Passé à l'Action"]
-
-    start --> router
-    router --> container
-    container --> authorize
-    authorize -->|succès| rules
-    authorize -->|échec| authorize_fail
-    rules -->|succès| getrecord
-    rules -->|échec| rules_fail
-    getrecord --> record
-    record --> action
-
-    style start fill:#e3f2fd,stroke:#000,color:#000
-    style router fill:#fff3e0,stroke:#000,color:#000
-    style container fill:#e8eaf6,stroke:#000,color:#000
-    style authorize fill:#c8e6c9,stroke:#000,color:#000
-    style authorize_fail fill:#ffcdd2,stroke:#000,color:#b71c1c
-    style rules fill:#c8e6c9,stroke:#000,color:#000
-    style rules_fail fill:#ffcdd2,stroke:#000,color:#b71c1c
-    style getrecord fill:#c8e6c9,stroke:#000,color:#000
-    style record fill:#b2dfdb,stroke:#000,color:#000
-    style action fill:#ce93d8,stroke:#000,color:#000
-```
+<img src="../../graphics/abstract-request.png" alt="Abstract Request Flow" width="800"/>
 
 ## Gestion des erreurs
 

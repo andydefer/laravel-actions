@@ -322,36 +322,9 @@ if (!empty($errors)) {
 ```
 
 ## Flux d'exécution
-```mermaid
-flowchart TD
-    A["ResponseFactory::json()"] --> B["new self"]
-    B --> C["status = 201"]
-    C --> D["return instance"]
-    D --> E["withHeaders()"]
-    E --> F["toResponse()"]
-    F --> G{"match type"}
-    
-    G -->|JSON| H1["JsonResponse"]
-    G -->|REDIRECT| H2["RedirectResponse"]
-    G -->|STREAM/SSE| H3["StreamedResponse"]
-    G -->|FILE| H4["BinaryFileResponse"]
-    G -->|INERTIA| H5["InertiaResponse"]
-    G -->|AUTRES| H6["Response"]
-    
-    style A fill:#ce93d8,stroke:#000,color:#000
-    style B fill:#e1bee7,stroke:#000,color:#000
-    style C fill:#e1bee7,stroke:#000,color:#000
-    style D fill:#e1bee7,stroke:#000,color:#000
-    style E fill:#ffe0b2,stroke:#000,color:#000
-    style F fill:#ffe0b2,stroke:#000,color:#000
-    style G fill:#fff9c4,stroke:#000,color:#000
-    style H1 fill:#81c784,stroke:#000,color:#000
-    style H2 fill:#81c784,stroke:#000,color:#000
-    style H3 fill:#81c784,stroke:#000,color:#000
-    style H4 fill:#81c784,stroke:#000,color:#000
-    style H5 fill:#81c784,stroke:#000,color:#000
-    style H6 fill:#81c784,stroke:#000,color:#000
-```
+
+<img src="../graphics/response-factory.png" alt="Response Factory Flow" width="800"/>
+
 
 ## Gestion des erreurs
 
@@ -386,10 +359,7 @@ flowchart TD
 | Version | Support |
 |---------|---------|
 | PHP 8.1+ | ✅ Requis (mixed type, readonly properties) |
-| Laravel 10.x | ✅ Complet |
-| Laravel 11.x | ✅ Complet |
-| Laravel 12.x | ✅ Complet |
-| Laravel 13.x | ✅ Complet |
+| Laravel 10.+ | ✅ Complet |
 
 ## Exemple complet
 

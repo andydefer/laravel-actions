@@ -118,37 +118,6 @@ final class TriggerWebhookAction extends AbstractAction
 }
 ```
 
-## Flux d'exécution
-
-```mermaid
-flowchart TD
-    route["Route enregistrée avec EmptyRequest"]
-    request["Requête HTTP entrante"]
-    container["app(EmptyRequest)<br/>Résolution par le conteneur"]
-    authorize["authorize()<br/>Toujours true (hérité)"]
-    rules["rules()<br/>Retourne [] (aucune validation)"]
-    getrecord["getRecord()<br/>Retourne new EmptyRecord()"]
-    record["EmptyRecord<br/>(sans propriétés)"]
-    action["Passé à l'Action"]
-
-    route --> request
-    request --> container
-    container --> authorize
-    authorize --> rules
-    rules --> getrecord
-    getrecord --> record
-    record --> action
-
-    style route fill:#fff3e0,stroke:#000,color:#000
-    style request fill:#e3f2fd,stroke:#000,color:#000
-    style container fill:#e8eaf6,stroke:#000,color:#000
-    style authorize fill:#c8e6c9,stroke:#000,color:#000
-    style rules fill:#c8e6c9,stroke:#000,color:#000
-    style getrecord fill:#c8e6c9,stroke:#000,color:#000
-    style record fill:#b2dfdb,stroke:#000,color:#000
-    style action fill:#ce93d8,stroke:#000,color:#000
-```
-
 ## Gestion des erreurs
 
 | Situation | Exception | Message |

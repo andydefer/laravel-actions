@@ -177,6 +177,50 @@ Route::get('/api/users/{id}', action_route(ShowUserRequest::class, ShowUserActio
     ->where('id', '[0-9]+');
 ```
 
+### 7. Fonction helper `action_factory()`
+
+Fonction utilitaire pour les routes simples qui n'ont pas besoin d'une Action dédiée. Parfaite pour les health checks, redirections simples ou vues statiques.
+
+**Règle d'utilisation :** Une ligne = `action_factory()` | Deux lignes ou plus = Créer une Action complète
+
+```php
+use function action_factory;
+use App\Data\HealthData;
+
+// Health check avec DTO
+Route::get('/health', action_factory(
+    ResponseFactory::json(HealthData::from(['status' => 'ok', 'timestamp' => now()->toIso8601String()]), 200)
+))->name('api.health')->middleware('api');
+
+// Redirection simple
+Route::get('/redirect', action_factory(ResponseFactory::redirectRoute('home')));
+
+// Vue statique
+Route::get('/home', action_factory(ResponseFactory::view('welcome')));
+
+// Fichier inline
+Route::get('/resume', action_factory(ResponseFactory::fileInline(storage_path('resume.pdf'))));
+
+// Téléchargement
+Route::get('/export', action_factory(ResponseFactory::fileDownload(storage_path('export.csv'), 'data.csv')));
+
+// 204 No Content
+Route::delete('/resource/{id}', action_factory(ResponseFactory::noContent()));
+
+// Texte brut
+Route::get('/robots.txt', action_factory(ResponseFactory::text("User-agent: *\nDisallow: /private/")));
+```
+
+**Important :** `ResponseFactory::json()` nécessite un objet `AbstractData`. Les tableaux bruts ne sont pas acceptés.
+
+```php
+// ❌ Erreur - Tableau brut non accepté
+Route::get('/health', action_factory(ResponseFactory::json(['status' => 'ok'], 200)));
+
+// ✅ Correct - Utilisation d'un DTO
+Route::get('/health', action_factory(ResponseFactory::json(HealthData::from(['status' => 'ok']), 200)));
+```
+
 ---
 
 ## Guide de démarrage
@@ -331,6 +375,31 @@ Route::prefix('v1')->middleware('api')->group(function () {
 });
 ```
 
+### Exemple : Routes simples avec action_factory()
+
+```php
+// routes/web.php
+use function action_factory;
+use App\Data\HealthData;
+
+// Health check
+Route::get('/health', action_factory(
+    ResponseFactory::json(HealthData::from(['status' => 'ok', 'timestamp' => now()->toIso8601String()]), 200)
+))->name('health');
+
+// Redirection
+Route::get('/home', action_factory(ResponseFactory::redirectRoute('dashboard')))->name('home');
+
+// Vue statique
+Route::get('/about', action_factory(ResponseFactory::view('pages.about')))->name('about');
+
+// Fichier
+Route::get('/resume', action_factory(ResponseFactory::fileInline(storage_path('resume.pdf'))));
+
+// 204 No Content
+Route::post('/webhook', action_factory(ResponseFactory::noContent()));
+```
+
 ---
 
 ## Documentation détaillée
@@ -342,6 +411,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
 | `EmptyRequest` | [Voir la documentation](docs/api-reference/http/empty-request.md) |
 | `ResponseFactory` | [Voir la documentation](docs/api-reference/http/response-factory.md) |
 | `action_route()` | [Voir la documentation](docs/api-reference/support/action-route-helper.md) |
+| `action_factory()` | [Voir la documentation](docs/api-reference/support/action-factory-helper.md) |
 | `ActionRoute` (déprécié) | [Voir la documentation](docs/api-reference/support/action-route.md) |
 | `HttpResponseType` | [Voir la documentation](docs/api-reference/enums/http-response-type.md) |
 
@@ -361,6 +431,15 @@ use function action_route;
 Route::get('/api/users', action_route(ListUsersRequest::class, ListUsersAction::class))
     ->name('users.index')
     ->middleware('auth');
+```
+
+**Pour les routes simples :**
+```php
+// Ancienne syntaxe (dépréciée)
+ActionRoute::get('/health', HealthRequest::class, HealthAction::class);
+
+// Nouvelle syntaxe avec action_factory()
+Route::get('/health', action_factory(ResponseFactory::json(HealthData::from(['status' => 'ok']), 200)));
 ```
 
 ---
@@ -397,4 +476,3 @@ MIT © [Andy Defer](https://github.com/andydefer)
 
 - Pattern ADR inspiré par [Paul M. Jones](https://github.com/pmjones)
 - Template Method pattern issu de Gamma et al. "Design Patterns"
-```

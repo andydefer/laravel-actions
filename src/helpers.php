@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
 use AndyDefer\Actions\Actions\AbstractAction;
+use AndyDefer\Actions\Http\ResponseFactory;
 
 if (! function_exists('action_route')) {
     /**
@@ -24,6 +25,30 @@ if (! function_exists('action_route')) {
 
             $responseFactory = $action->run($request->getRecord());
 
+            return $responseFactory->toResponse();
+        };
+    }
+}
+
+if (! function_exists('action_factory')) {
+    /**
+     * Create a route action that directly returns a ResponseFactory instance.
+     *
+     * Useful for simple routes that don't need a full Action class.
+     * Perfect for health checks, simple redirects, or static views.
+     *
+     * @param ResponseFactory $responseFactory The response factory to return
+     * @return Closure
+     * 
+     * @example
+     * Route::get('/health', action_factory(ResponseFactory::json(['status' => 'ok'], 200)));
+     * Route::get('/home', action_factory(ResponseFactory::view('pages.home')));
+     * Route::get('/redirect', action_factory(ResponseFactory::redirectRoute('home')));
+     * Route::get('/download', action_factory(ResponseFactory::fileDownload(storage_path('file.pdf'))));
+     */
+    function action_factory(ResponseFactory $responseFactory): Closure
+    {
+        return function () use ($responseFactory) {
             return $responseFactory->toResponse();
         };
     }

@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
 [![PHP Version Require](https://img.shields.io/packagist/php-v/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
-[![Laravel Version](https://img.shields.io/badge/Laravel-10%2F11%2F12-ff2d20.svg)](https://laravel.com)
+[![Laravel Version](https://img.shields.io/badge/Laravel-10%2F11%2F12%2F13%2F14%2F15-ff2d20.svg)](https://laravel.com)
 [![License](https://img.shields.io/packagist/l/andydefer/laravel-actions.svg)](https://packagist.org/packages/andydefer/laravel-actions)
 
 ## Table des matières
@@ -157,16 +157,24 @@ return ResponseFactory::noContent();               // 204 No Content
 return ResponseFactory::fileDownload($path);       // Téléchargement
 ```
 
-### 6. ActionRoute
+### 6. Fonction helper `action_route()`
 
-Enregistrement simplifié des routes.
+Fonction utilitaire qui retourne une closure pour associer une Request et une Action à une route. Cette approche préserve toute l'API fluide du `RouteRegistrar`.
 
 ```php
-ActionRoute::get('/api/users', ListUsersRequest::class, ListUsersAction::class);
-ActionRoute::post('/api/users', CreateUserRequest::class, CreateUserAction::class);
-ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
-ActionRoute::put('/api/users/{id}', UpdateUserRequest::class, UpdateUserAction::class);
-ActionRoute::delete('/api/users/{id}', DeleteUserRequest::class, DeleteUserAction::class);
+use function action_route;
+
+Route::get('/api/users', action_route(ListUsersRequest::class, ListUsersAction::class))
+    ->name('users.index')
+    ->middleware('auth');
+
+Route::post('/api/users', action_route(CreateUserRequest::class, CreateUserAction::class))
+    ->name('users.store')
+    ->middleware('throttle:10,1');
+
+Route::get('/api/users/{id}', action_route(ShowUserRequest::class, ShowUserAction::class))
+    ->name('users.show')
+    ->where('id', '[0-9]+');
 ```
 
 ---
@@ -211,7 +219,9 @@ final class ShowUserRequest extends AbstractRequest
 {
     public function rules(): array
     {
-        return []; // Aucune validation spécifique
+        return [
+            'id' => ['required', 'integer', 'exists:users,id'],
+        ];
     }
     
     public function getRecord(): AbstractRecord
@@ -281,11 +291,44 @@ final class ShowUserAction extends AbstractAction
 
 ```php
 // routes/api.php
-use AndyDefer\Actions\Support\ActionRoute;
+use function action_route;
 use App\Http\Requests\ShowUserRequest;
 use App\Actions\ShowUserAction;
 
-ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::class);
+Route::get('/api/users/{id}', action_route(ShowUserRequest::class, ShowUserAction::class))
+    ->name('users.show')
+    ->where('id', '[0-9]+');
+```
+
+### Exemple complet : API REST
+
+```php
+// routes/api.php
+use function action_route;
+
+Route::prefix('v1')->middleware('api')->group(function () {
+    
+    // Routes utilisateurs
+    Route::get('/users', action_route(ListUsersRequest::class, ListUsersAction::class))
+        ->name('api.v1.users.index')
+        ->middleware('cache:300');
+    
+    Route::post('/users', action_route(CreateUserRequest::class, CreateUserAction::class))
+        ->name('api.v1.users.store')
+        ->middleware('throttle:10,1');
+    
+    Route::get('/users/{id}', action_route(ShowUserRequest::class, ShowUserAction::class))
+        ->name('api.v1.users.show')
+        ->where('id', '[0-9]+');
+    
+    Route::put('/users/{id}', action_route(UpdateUserRequest::class, UpdateUserAction::class))
+        ->name('api.v1.users.update')
+        ->where('id', '[0-9]+');
+    
+    Route::delete('/users/{id}', action_route(DeleteUserRequest::class, DeleteUserAction::class))
+        ->name('api.v1.users.destroy')
+        ->where('id', '[0-9]+');
+});
 ```
 
 ---
@@ -298,8 +341,27 @@ ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::clas
 | `AbstractRequest` | [Voir la documentation](docs/api-reference/http/abstract-request.md) |
 | `EmptyRequest` | [Voir la documentation](docs/api-reference/http/empty-request.md) |
 | `ResponseFactory` | [Voir la documentation](docs/api-reference/http/response-factory.md) |
-| `ActionRoute` | [Voir la documentation](docs/api-reference/support/action-route.md) |
+| `action_route()` | [Voir la documentation](docs/api-reference/support/action-route-helper.md) |
+| `ActionRoute` (déprécié) | [Voir la documentation](docs/api-reference/support/action-route.md) |
 | `HttpResponseType` | [Voir la documentation](docs/api-reference/enums/http-response-type.md) |
+
+---
+
+## Migration depuis ActionRoute
+
+**Ancienne syntaxe (dépréciée) :**
+```php
+ActionRoute::get('/api/users', ListUsersRequest::class, ListUsersAction::class);
+```
+
+**Nouvelle syntaxe (recommandée) :**
+```php
+use function action_route;
+
+Route::get('/api/users', action_route(ListUsersRequest::class, ListUsersAction::class))
+    ->name('users.index')
+    ->middleware('auth');
+```
 
 ---
 
@@ -321,7 +383,7 @@ Le package utilise PHPUnit avec deux types de tests :
 | Version | Laravel | PHP |
 |---------|---------|-----|
 | 1.x | 10.x, 11.x, 12.x | 8.1+ |
-| 2.x | 10.x, 11.x, 12.x | 8.2+ |
+| 2.x | 10.x, 11.x, 12.x, 13.x, 14.x, 15.x | 8.2+ |
 
 ---
 
@@ -335,3 +397,4 @@ MIT © [Andy Defer](https://github.com/andydefer)
 
 - Pattern ADR inspiré par [Paul M. Jones](https://github.com/pmjones)
 - Template Method pattern issu de Gamma et al. "Design Patterns"
+```

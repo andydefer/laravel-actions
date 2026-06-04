@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AndyDefer\Actions\Tests;
 
 use AndyDefer\Actions\ActionServiceProvider;
+use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 /**
@@ -24,9 +25,6 @@ abstract class IntegrationTestCase extends Orchestra
         ];
     }
 
-    /**
-     * Ne pas définir la config ici, sinon mergeConfigFrom n'a plus rien à faire
-     */
     protected function defineEnvironment($app): void
     {
         // Laisser vide - la configuration par défaut du package sera mergée
@@ -35,6 +33,10 @@ abstract class IntegrationTestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Reset routes before each test
+        Route::clearResolvedInstances();
+        $this->app['router']->getRoutes()->refreshNameLookups();
     }
 
     protected function tearDown(): void

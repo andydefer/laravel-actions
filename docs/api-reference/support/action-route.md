@@ -1,13 +1,31 @@
 # ActionRoute - Référence Technique
 
+> ⚠️ **DÉPRÉCIÉ** : Cette classe est dépréciée depuis la version 2.0. Utilisez plutôt la fonction helper `action_route()` qui offre plus de flexibilité et préserve l'API fluide du RouteRegistrar.
+
 ## Description
 
 Enregistre des routes HTTP qui associent une classe de requête (`AbstractRequest`) à une classe d'action (`AbstractAction`).
 
+## Migration
+
+**Ancienne syntaxe (dépréciée) :**
+```php
+ActionRoute::get('/users', ListUsersRequest::class, ListUsersAction::class);
+```
+
+**Nouvelle syntaxe (recommandée) :**
+```php
+use function action_route;
+
+Route::get('/users', action_route(ListUsersRequest::class, ListUsersAction::class))
+    ->name('users.index')
+    ->middleware('auth');
+```
+
 ## Hiérarchie
 
 ```
-ActionRoute (final)
+ActionRoute (final) [DÉPRÉCIÉ]
     └── Utilise Laravel Route facade
 ```
 
@@ -211,12 +229,12 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
 | Version | Support |
 |---------|---------|
-| Laravel 10.x | ✅ Complet |
-| Laravel 11.x | ✅ Complet |
-| Laravel 12.x | ✅ Complet |
+| Laravel 10.x | ✅ Complet (déprécié) |
+| Laravel 11.x | ✅ Complet (déprécié) |
+| Laravel 12.x | ✅ Complet (déprécié) |
 | PHP 8.1+ | ✅ Requis |
 
-## Exemple complet
+## Exemple complet (déprécié)
 
 ```php
 <?php
@@ -225,21 +243,49 @@ declare(strict_types=1);
 
 use AndyDefer\Actions\Support\ActionRoute;
 
-// Enregistrement des routes
+// ⚠️ Cette syntaxe est dépréciée
 ActionRoute::get('/api/users', ListUsersRequest::class, ListUsersAction::class);
 ActionRoute::post('/api/users', CreateUserRequest::class, CreateUserAction::class);
 ActionRoute::get('/api/users/{id}', GetUserRequest::class, GetUserAction::class);
 ActionRoute::put('/api/users/{id}', UpdateUserRequest::class, UpdateUserAction::class);
 ActionRoute::delete('/api/users/{id}', DeleteUserRequest::class, DeleteUserAction::class);
-
-// Routes avec middleware
-Route::middleware('auth')->group(function () {
-    ActionRoute::get('/api/profile', ProfileRequest::class, ProfileAction::class);
-});
-
-// Routes avec préfixe
-Route::prefix('api/v1')->group(function () {
-    ActionRoute::get('/products', ListProductsRequest::class, ListProductsAction::class);
-});
 ```
----
+
+## Exemple de migration recommandé
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use function action_route;
+
+// ✅ Nouvelle syntaxe recommandée
+Route::get('/api/users', action_route(ListUsersRequest::class, ListUsersAction::class))
+    ->name('api.users.index');
+
+Route::post('/api/users', action_route(CreateUserRequest::class, CreateUserAction::class))
+    ->name('api.users.store');
+
+Route::get('/api/users/{id}', action_route(GetUserRequest::class, GetUserAction::class))
+    ->name('api.users.show')
+    ->where('id', '[0-9]+');
+
+Route::put('/api/users/{id}', action_route(UpdateUserRequest::class, UpdateUserAction::class))
+    ->name('api.users.update');
+
+Route::delete('/api/users/{id}', action_route(DeleteUserRequest::class, DeleteUserAction::class))
+    ->name('api.users.destroy');
+```
+
+## Raison de la dépréciation
+
+La classe `ActionRoute` présentait plusieurs limitations :
+
+1. **Impossible de nommer les routes** - Pas de support de `->name()`
+2. **Impossible d'ajouter des middlewares directement** - Nécessitait des groupes
+3. **Impossible d'ajouter des contraintes where** - Pas de support de `->where()`
+4. **Perte de l'API fluide** - Le chaînage des méthodes n'était pas possible
+
+La fonction helper `action_route()` résout tous ces problèmes tout en restant plus simple et plus flexible.
+```

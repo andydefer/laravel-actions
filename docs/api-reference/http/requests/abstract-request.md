@@ -2,7 +2,7 @@
 
 ## Description
 
-Classe abstraite de base pour toutes les requêtes HTTP dans le système d'Action. Étend `FormRequest` de Laravel pour fournir validation et autorisation.
+Classe abstraite de base pour toutes les requêtes HTTP dans le système d'Action. Étend `FormRequest` de Laravel pour fournir validation et autorisation, avec la capacité supplémentaire de retourner les données validées sous forme d'objet `StrictDataObject`.
 
 ## Hiérarchie
 
@@ -13,7 +13,7 @@ Illuminate\Foundation\Http\FormRequest
 
 ## Rôle principal
 
-Faire le pont entre la requête HTTP entrante et l'Action. Valide les données, autorise l'utilisateur, puis transforme les données validées en un objet `AbstractRecord` typé qui sera passé à l'Action.
+Faire le pont entre la requête HTTP entrante et l'Action. Valide les données, autorise l'utilisateur, puis transforme les données validées en un objet `AbstractRecord` typé qui sera passé à l'Action. La méthode `validated()` retourne désormais un `StrictDataObject` permettant un accès à la fois par tableau et par propriété.
 
 ## Installation
 
@@ -58,6 +58,48 @@ public function rules(): array
 }
 ```
 
+### `validated($key = null, $default = null): StrictDataObject|mixed`
+
+Récupère les données validées. Retourne un `StrictDataObject` au lieu d'un tableau.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `$key` | `string|null` | Clé spécifique à récupérer (optionnel) |
+| `$default` | `mixed` | Valeur par défaut si la clé n'existe pas |
+
+**Retourne :** 
+- `StrictDataObject` - Si aucun `$key` n'est fourni
+- `mixed` - Si une clé est fournie (valeur ou `$default`)
+
+**Exemple :**
+```php
+public function getRecord(): AbstractRecord
+{
+    $validated = $this->validated();
+    
+    // Accès par propriété (recommandé)
+    return CreateUserRecord::from([
+        'name' => $validated->name,
+        'email' => $validated->email,
+    ]);
+    
+    // Accès par tableau également possible
+    // $validated['name']
+}
+```
+
+### `getValidated(): StrictDataObject`
+
+Retourne les données validées sous forme de `StrictDataObject`. Alternative explicite à `validated()`.
+
+**Retourne :** `StrictDataObject` - Données validées
+
+**Exemple :**
+```php
+$validated = $request->getValidated();
+echo $validated->email;
+```
+
 ### `getRecord(): AbstractRecord`
 
 Transforme la requête HTTP validée en un objet Record typé.
@@ -70,9 +112,11 @@ Transforme la requête HTTP validée en un objet Record typé.
 ```php
 public function getRecord(): AbstractRecord
 {
+    $validated = $this->validated();
+    
     return CreateUserRecord::from([
-        'name' => $this->input('name'),
-        'email' => $this->input('email'),
+        'name' => $validated->name,
+        'email' => $validated->email,
         'ipAddress' => $this->ip(),
     ]);
 }
@@ -111,10 +155,12 @@ final class CreateUserRequest extends AbstractRequest
 
     public function getRecord(): AbstractRecord
     {
+        $validated = $this->validated();
+
         return CreateUserRecord::from([
-            'name' => $this->input('name'),
-            'email' => $this->input('email'),
-            'password' => $this->input('password'),
+            'name' => $validated->name,
+            'email' => $validated->email,
+            'password' => $validated->password,
             'ipAddress' => $this->ip(),
             'userAgent' => $this->userAgent(),
         ]);
@@ -146,10 +192,12 @@ final class ShowUserRequest extends AbstractRequest
 
     public function getRecord(): AbstractRecord
     {
+        $include = $this->input('include', '');
+
         return ShowUserRecord::from([
             'id' => (int) $this->route('id'),
-            'includePosts' => str_contains($this->input('include', ''), 'posts'),
-            'includeComments' => str_contains($this->input('include', ''), 'comments'),
+            'includePosts' => str_contains($include, 'posts'),
+            'includeComments' => str_contains($include, 'comments'),
         ]);
     }
 }
@@ -184,12 +232,57 @@ final class DashboardRequest extends AbstractRequest
 
     public function getRecord(): AbstractRecord
     {
+        $validated = $this->validated();
+
         return DashboardRecord::from([
             'userId' => $this->user()->id,
-            'period' => $this->input('period', 'day'),
+            'period' => $validated->period ?? 'day',
             'preferences' => session()->get('dashboard_preferences', []),
         ]);
     }
+}
+```
+
+### Cas 4 : Requête sans données (EmptyRequest)
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use AndyDefer\Actions\Http\Requests\EmptyRequest;
+use AndyDefer\Actions\Support\ActionRoute;
+
+// Route pour health check sans données
+ActionRoute::get('/health', EmptyRequest::class, HealthCheckAction::class);
+```
+
+### Cas 5 : Accès flexible aux données validées
+
+```php
+public function getRecord(): AbstractRecord
+{
+    $validated = $this->validated();
+    
+    // Accès par propriété (recommandé - plus lisible)
+    $name = $validated->name;
+    $email = $validated->email;
+    
+    // Accès par tableau (également possible)
+    $name = $validated['name'];
+    
+    // Récupération avec valeur par défaut
+    $age = $validated->age ?? 18;
+    $age = $validated['age'] ?? 18;
+    
+    // Récupération via la méthode avec clé
+    $name = $this->validated('name');
+    $missing = $this->validated('missing', 'default');
+    
+    return CreateUserRecord::from([
+        'name' => $name,
+        'email' => $email,
+    ]);
 }
 ```
 
@@ -214,6 +307,7 @@ final class DashboardRequest extends AbstractRequest
 - **ActionRoute** : Enregistre automatiquement la route avec la Request et l'Action
 - **AbstractRecord** : Produit un Record typé pour l'Action
 - **Conteneur Laravel** : Résout automatiquement les dépendances du constructeur
+- **StrictDataObject** : Fournit un accès unifié aux données validées
 
 ## Performance
 
@@ -222,6 +316,7 @@ final class DashboardRequest extends AbstractRequest
 | Validation | Une fois par requête (cachée par Laravel) |
 | Autorisation | Une fois par requête |
 | Transformation | `O(n)` avec n = nombre de propriétés du Record |
+| Conversion en StrictDataObject | Négligeable (wrapper autour du tableau) |
 | Mémoire | Une instance par requête (gérée par Laravel) |
 
 ## Compatibilité
@@ -267,10 +362,12 @@ final class UpdateUserRequest extends AbstractRequest
 
     public function getRecord(): AbstractRecord
     {
+        $validated = $this->validated();
+
         return UpdateUserRecord::from([
             'id' => (int) $this->route('id'),
-            'name' => $this->input('name'),
-            'email' => $this->input('email'),
+            'name' => $validated->name ?? null,
+            'email' => $validated->email ?? null,
             'hasAvatar' => $this->hasFile('avatar'),
             'avatar' => $this->file('avatar'),
             'updatedBy' => $this->user()->id,
@@ -278,7 +375,21 @@ final class UpdateUserRequest extends AbstractRequest
     }
 }
 
-// Enregistrement dans routes/web.php
-ActionRoute::put('/api/users/{id}', UpdateUserRequest::class, UpdateUserAction::class);
+// Enregistrement dans routes/api.php
+use function action_route;
+use App\Http\Requests\Api\Users\UpdateUserRequest;
+use App\Actions\Api\Users\UpdateUserAction;
+
+Route::put('/api/users/{id}', action_route(UpdateUserRequest::class, UpdateUserAction::class))
+    ->name('api.users.update');
 ```
----
+
+## Bonnes pratiques
+
+| Pratique | Recommandation |
+|----------|----------------|
+| **Accès aux données** | Utilisez `$validated->property` plutôt que `$validated['property']` pour une meilleure lisibilité |
+| **Valeurs par défaut** | Utilisez `$validated->property ?? $default` ou le paramètre `$default` de `validated()` |
+| **Règles de validation** | Définissez TOUJOURS les règles pour les champs que vous utilisez dans `getRecord()` |
+| **EmptyRequest** | Utilisez `EmptyRequest` pour les routes sans données (health check, ping) |
+| **Type hint** | Utilisez `/** @var YourRecord $record */` avant d'utiliser le Record dans l'Action |

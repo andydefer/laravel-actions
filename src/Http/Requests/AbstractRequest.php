@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AndyDefer\Actions\Http\Requests;
 
 use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
+use AndyDefer\DomainStructures\Utils\StrictDataObject;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -97,4 +98,33 @@ abstract class AbstractRequest extends FormRequest
      * }
      */
     abstract public function getRecord(): AbstractRecord;
+
+    /**
+     * Override validated() to return a StrictDataObject instead of an array.
+     *
+     * This allows accessing validated data both as array ($validated['email'])
+     * and as object property ($validated->email).
+     *
+     * @return StrictDataObject
+     */
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated();
+
+        if ($key !== null) {
+            return $validated[$key] ?? $default;
+        }
+
+        return new StrictDataObject($validated);
+    }
+
+    /**
+     * Get validated data as a StrictDataObject.
+     *
+     * @return StrictDataObject
+     */
+    public function getValidated(): StrictDataObject
+    {
+        return new StrictDataObject(parent::validated());
+    }
 }

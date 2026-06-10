@@ -444,6 +444,66 @@ Route::get('/health', action_factory(ResponseFactory::json(HealthData::from(['st
 
 ---
 
+
+## Bonnes pratiques
+
+### Convention de nommage
+
+Le package suit une convention de nommage stricte qui garantit la cohérence et la prédictibilité du code. Les noms des classes doivent refléter exactement la structure des dossiers et l'URI de la route.
+
+**Règle fondamentale :** Le nom de la route détermine le nom de toutes les classes associées.
+
+```bash
+# La route détermine la convention
+/api/doctors/show → Api/Doctors/Show
+```
+
+**Correspondance complète :**
+
+| Composant | Convention | Exemple (`api/doctors/show`) |
+|-----------|------------|------------------------------|
+| **Action** | `Actions/{Chemin}Action` | `App\Actions\Api\Doctors\ShowAction` |
+| **Request** | `Http\Requests\{Chemin}Request` | `App\Http\Requests\Api\Doctors\ShowRequest` |
+| **Record** | `Records\{Chemin}Record` | `App\Records\Api\Doctors\ShowRecord` |
+| **Data** | `Data\{Chemin}Data` | `App\Data\Api\Doctors\ShowData` |
+
+**Génération automatique avec la commande :**
+
+```bash
+# La commande crée automatiquement les 4 classes avec les bons noms
+php artisan actions:make api/doctors/show --fully
+
+# Résultat :
+# ✅ Action:  Api/Doctors/ShowAction
+# ✅ Request: Api/Doctors/ShowRequest  
+# ✅ Record:  Api/Doctors/ShowRecord
+# ✅ Data:    Api/Doctors/ShowData
+```
+
+**Pourquoi cette convention ?**
+
+- **Prédictible** : Le développeur sait immédiatement où chercher chaque classe
+- **Auto-documenté** : Le chemin du fichier indique la route qu'il sert
+- **IDE-friendly** : La complétion automatique fonctionne parfaitement
+- **Sans collision** : Plusieurs endpoints avec le même nom dans des dossiers différents coexistent
+
+**À respecter impérativement :**
+
+```php
+// ✅ Bon : Le namespace correspond au chemin
+namespace App\Actions\Api\Doctors;
+final class ShowAction extends AbstractAction {}
+
+// ❌ Mauvais : Namespace incohérent avec le chemin
+namespace App\Actions\Doctors;
+final class ShowDoctorAction extends AbstractAction {}
+```
+
+> **Important :** Cette convention de nommage est obligatoire pour que l'autoloading, les outils d'analyse statique (PHPStan, Psalm) et la maintenance à long terme fonctionnent correctement.
+
+---
+
+
 ## Tests
 
 ```bash
@@ -465,6 +525,8 @@ Le package utilise PHPUnit avec deux types de tests :
 | 2.x | 10.x, 11.x, 12.x, 13.x, 14.x, 15.x | 8.2+ |
 
 ---
+
+
 
 ## License
 

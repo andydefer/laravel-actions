@@ -507,6 +507,57 @@ ActionRoute::get('/api/users/{id}', ShowUserRequest::class, ShowUserAction::clas
 ```
 
 ---
+## Conventions de nommage
+
+Le pattern 2RAD suit une convention de nommage stricte qui garantit la cohérence et la prédictibilité du code. Les noms des classes doivent refléter exactement la structure des dossiers et l'URI de la route.
+
+**Règle fondamentale :** Le nom de la route détermine le nom de toutes les classes associées.
+
+```bash
+# La route détermine la convention
+/api/doctors/show → Api/Doctors/Show
+```
+
+**Correspondance complète :**
+
+| Composant | Convention | Exemple (`api/doctors/show`) |
+|-----------|------------|------------------------------|
+| **Action** | `Actions/{Chemin}Action` | `App\Actions\Api\Doctors\ShowAction` |
+| **Request** | `Http\Requests\{Chemin}Request` | `App\Http\Requests\Api\Doctors\ShowRequest` |
+| **Record** | `Records\{Chemin}Record` | `App\Records\Api\Doctors\ShowRecord` |
+| **Data** | `Data\{Chemin}Data` | `App\Data\Api\Doctors\ShowData` |
+
+**Génération automatique :**
+
+```bash
+# La commande crée automatiquement les 4 classes avec les bons noms
+./vendor/bin/directive make-action api/doctors/show --fully
+
+# Résultat :
+# ✅ Action:  Api/Doctors/ShowAction
+# ✅ Request: Api/Doctors/ShowRequest  
+# ✅ Record:  Api/Doctors/ShowRecord
+# ✅ Data:    Api/Doctors/ShowData
+```
+
+**Pourquoi cette convention ?**
+- **Prédictible** : Le développeur sait immédiatement où chercher chaque classe
+- **Auto-documenté** : Le chemin du fichier indique la route qu'il sert
+- **IDE-friendly** : La complétion automatique fonctionne parfaitement
+- **Sans collision** : Plusieurs endpoints avec le même nom dans des dossiers différents coexistent
+
+**À respecter impérativement :**
+```php
+// ✅ Bon : Le namespace correspond au chemin
+namespace App\Actions\Api\Doctors;
+class ShowAction extends AbstractAction {}
+
+// ❌ Mauvais : Namespace incohérent avec le chemin
+namespace App\Actions\Doctors;
+class ShowDoctorAction extends AbstractAction {}
+```
+
+Cette convention de nommage est obligatoire pour que l'autoloading, les outils d'analyse statique et la maintenance à long terme fonctionnent correctement.
 
 ## Conclusion
 

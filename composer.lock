@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "39d942d371b9944807b2de44b9173356",
+    "content-hash": "2deed1541b6e67c035da6e47728f5d12",
     "packages": [
         {
             "name": "andydefer/domain-structures",

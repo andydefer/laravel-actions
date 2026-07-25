@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bf84615da4ee76c7ae56cede1a1b9e00",
+    "content-hash": "83e6f79ecc6db72deabd3147ead50f89",
     "packages": [
         {
             "name": "andydefer/domain-structures",
@@ -112,20 +112,20 @@
         },
         {
             "name": "andydefer/php-services",
-            "version": "v1.5.9",
+            "version": "v1.5.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/andydefer/php-services.git",
-                "reference": "2a903cc431a96f5d0a30fa3f5fa13080ca4fdc9c"
+                "reference": "12d662fa0ce7cacda9a454d457a9f340d785d209"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/andydefer/php-services/zipball/2a903cc431a96f5d0a30fa3f5fa13080ca4fdc9c",
-                "reference": "2a903cc431a96f5d0a30fa3f5fa13080ca4fdc9c",
+                "url": "https://api.github.com/repos/andydefer/php-services/zipball/12d662fa0ce7cacda9a454d457a9f340d785d209",
+                "reference": "12d662fa0ce7cacda9a454d457a9f340d785d209",
                 "shasum": ""
             },
             "require": {
-                "andydefer/php-vo": "^0.18.0",
+                "andydefer/php-vo": "^0.18.1",
                 "php": "^8.2"
             },
             "require-dev": {
@@ -156,9 +156,9 @@
             "description": "Collection of reusable services for PHP and Laravel applications including model transformation, caching, and common business logic",
             "support": {
                 "issues": "https://github.com/andydefer/php-services/issues",
-                "source": "https://github.com/andydefer/php-services/tree/v1.5.9"
+                "source": "https://github.com/andydefer/php-services/tree/v1.5.10"
             },
-            "time": "2026-07-25T07:04:55+00:00"
+            "time": "2026-07-25T13:03:17+00:00"
         },
         {
             "name": "andydefer/php-vo",

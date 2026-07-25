@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AndyDefer\Actions\Services;
 
 use AndyDefer\Actions\Datas\PaginationData;
+use AndyDefer\DomainStructures\Abstracts\AbstractData;
+use AndyDefer\DomainStructures\Interfaces\Transformable;
 use AndyDefer\DomainStructures\Utils\Sequential;
 use AndyDefer\PhpClient\ValueObjects\UrlVO;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,7 +14,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 final class PaginationBuilderService
 {
-    public function build(Builder $query): PaginationData
+    /**
+     * @param  class-string<AbstractData&Transformable>|null  $itemClass
+     */
+    public function build(Builder $query, ?string $itemClass = null): PaginationData
     {
         $perPage = (int) request()->input('per_page', 5);
         $currentPage = (int) request()->input('current_page', 1);
@@ -22,7 +27,7 @@ final class PaginationBuilderService
         $nextPageUrl = $this->resolveNextPageUrl($paginator, $perPage);
         $prevPageUrl = $this->resolvePrevPageUrl($paginator, $perPage);
 
-        return $this->buildResponse($paginator, $nextPageUrl, $prevPageUrl);
+        return $this->buildResponse($paginator, $nextPageUrl, $prevPageUrl, $itemClass);
     }
 
     private function resolveNextPageUrl(LengthAwarePaginator $paginator, int $perPage): ?UrlVO
@@ -65,9 +70,25 @@ final class PaginationBuilderService
         return new UrlVO($url);
     }
 
-    private function buildResponse(LengthAwarePaginator $paginator, ?UrlVO $nextPageUrl, ?UrlVO $prevPageUrl): PaginationData
-    {
+    /**
+     * @param  class-string<AbstractData&Transformable>|null  $itemClass
+     */
+    private function buildResponse(
+        LengthAwarePaginator $paginator,
+        ?UrlVO $nextPageUrl,
+        ?UrlVO $prevPageUrl,
+        ?string $itemClass = null
+    ): PaginationData {
         $items = action_normalizer_chain(true)->normalize($paginator->items());
+
+        if ($itemClass !== null) {
+            $this->validateItemClass($itemClass);
+
+            $items = array_map(
+                fn ($item) => $itemClass::from($item),
+                $items
+            );
+        }
 
         return new PaginationData(
             items: Sequential::from($items),
@@ -78,5 +99,39 @@ final class PaginationBuilderService
             nextPageUrl: $nextPageUrl,
             prevPageUrl: $prevPageUrl,
         );
+    }
+
+    /**
+     * @param  class-string  $itemClass
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validateItemClass(string $itemClass): void
+    {
+        if (! class_exists($itemClass)) {
+            throw new \InvalidArgumentException(
+                sprintf('Item class "%s" does not exist.', $itemClass)
+            );
+        }
+
+        if (! is_subclass_of($itemClass, AbstractData::class)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Item class "%s" must extend %s.',
+                    $itemClass,
+                    AbstractData::class
+                )
+            );
+        }
+
+        if (! is_subclass_of($itemClass, Transformable::class)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Item class "%s" must implement %s.',
+                    $itemClass,
+                    Transformable::class
+                )
+            );
+        }
     }
 }

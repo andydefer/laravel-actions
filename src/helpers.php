@@ -5,6 +5,8 @@ declare(strict_types=1);
 use AndyDefer\Actions\Actions\AbstractAction;
 use AndyDefer\Actions\Http\Requests\AbstractRequest;
 use AndyDefer\Actions\Http\ResponseFactory;
+use AndyDefer\Actions\Normalizers\ActionNormalizerChain;
+use AndyDefer\Actions\Normalizers\ActionRootNormalizer;
 
 if (! function_exists('action_route')) {
     /**
@@ -49,5 +51,24 @@ if (! function_exists('action_factory')) {
         return function () use ($responseFactory) {
             return $responseFactory->toResponse();
         };
+    }
+}
+
+if (! function_exists('action_normalizer_chain')) {
+    /**
+     * Get the action normalizer instance.
+     *
+     * Normalizes Eloquent models, collections, and other data structures
+     * into arrays using the ActionNormalizerChain.
+     *
+     * @param  bool  $preserveRecordCase  Whether to preserve record case sensitivity
+     *
+     * @example
+     * $array = action_normalizer_chain()->normalize($user);
+     * $array = action_normalizer_chain(true)->normalize($doctorProfile);
+     */
+    function action_normalizer_chain(bool $preserveRecordCase = false): ActionRootNormalizer
+    {
+        return ActionNormalizerChain::get($preserveRecordCase);
     }
 }

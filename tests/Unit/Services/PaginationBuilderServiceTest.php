@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Tests\Integration\Services;
 
-use AndyDefer\Actions\Services\PaginationUrlBuilderService;
+use AndyDefer\Actions\Services\PaginationBuilderService;
 use AndyDefer\Actions\Tests\Fixtures\Actions\Cars\IndexCarsAction;
 use AndyDefer\Actions\Tests\Fixtures\Models\Car;
 use AndyDefer\Actions\Tests\Fixtures\Requests\Cars\IndexCarsRequest;
 use AndyDefer\Actions\Tests\IntegrationTestCase;
 use Illuminate\Support\Facades\Route;
 
-final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
+final class PaginationBuilderServiceTest extends IntegrationTestCase
 {
-    private PaginationUrlBuilderService $service;
+    private PaginationBuilderService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->service = $this->app->make(PaginationUrlBuilderService::class);
+        $this->service = $this->app->make(PaginationBuilderService::class);
 
         $this->createCar('Toyota', 'Camry', 2020, 'Red', 35000.00, true);
         $this->createCar('Honda', 'Civic', 2021, 'Blue', 28000.00, true);
@@ -75,19 +75,19 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $this->assertIsArray($content);
 
         $this->assertArrayHasKey('items', $content);
-        $this->assertArrayHasKey('current_page', $content);
-        $this->assertArrayHasKey('per_page', $content);
+        $this->assertArrayHasKey('currentPage', $content);
+        $this->assertArrayHasKey('perPage', $content);
         $this->assertArrayHasKey('total', $content);
-        $this->assertArrayHasKey('last_page', $content);
-        $this->assertArrayHasKey('next_page_url', $content);
-        $this->assertArrayHasKey('prev_page_url', $content);
+        $this->assertArrayHasKey('lastPage', $content);
+        $this->assertArrayHasKey('nextPageUrl', $content);
+        $this->assertArrayHasKey('prevPageUrl', $content);
 
-        $this->assertEquals(1, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(1, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(10, $content['total']);
-        $this->assertEquals(2, $content['last_page']);
-        $this->assertNotNull($content['next_page_url']);
-        $this->assertNull($content['prev_page_url']);
+        $this->assertEquals(2, $content['lastPage']);
+        $this->assertNotNull($content['nextPageUrl']);
+        $this->assertNull($content['prevPageUrl']);
 
         $this->assertCount(5, $content['items']);
         $this->assertEquals('Toyota', $content['items'][0]['brand']);
@@ -108,12 +108,12 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertIsArray($content);
 
-        $this->assertEquals(2, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(2, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(15, $content['total']);
-        $this->assertEquals(3, $content['last_page']);
-        $this->assertNotNull($content['next_page_url']);
-        $this->assertNotNull($content['prev_page_url']);
+        $this->assertEquals(3, $content['lastPage']);
+        $this->assertNotNull($content['nextPageUrl']);
+        $this->assertNotNull($content['prevPageUrl']);
 
         $this->assertCount(5, $content['items']);
     }
@@ -134,12 +134,12 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertIsArray($content);
 
-        $this->assertEquals(1, $content['current_page']);
-        $this->assertEquals(2, $content['per_page']);
+        $this->assertEquals(1, $content['currentPage']);
+        $this->assertEquals(2, $content['perPage']);
         $this->assertEquals(3, $content['total']);
-        $this->assertEquals(2, $content['last_page']);
-        $this->assertNotNull($content['next_page_url']);
-        $this->assertNull($content['prev_page_url']);
+        $this->assertEquals(2, $content['lastPage']);
+        $this->assertNotNull($content['nextPageUrl']);
+        $this->assertNull($content['prevPageUrl']);
 
         $this->assertCount(2, $content['items']);
         $this->assertEquals('Toyota', $content['items'][0]['brand']);
@@ -157,12 +157,12 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertIsArray($content);
-        $this->assertEquals(1, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(1, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(0, $content['total']);
-        $this->assertEquals(1, $content['last_page']);
-        $this->assertNull($content['next_page_url']);
-        $this->assertNull($content['prev_page_url']);
+        $this->assertEquals(1, $content['lastPage']);
+        $this->assertNull($content['nextPageUrl']);
+        $this->assertNull($content['prevPageUrl']);
         $this->assertCount(0, $content['items']);
     }
 
@@ -180,10 +180,10 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertIsArray($content);
 
-        $this->assertEquals(1, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(1, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(1, $content['total']);
-        $this->assertEquals(1, $content['last_page']);
+        $this->assertEquals(1, $content['lastPage']);
         $this->assertIsArray($content['items']);
         $this->assertCount(1, $content['items']);
         $this->assertEquals('Test', $content['items'][0]['brand']);
@@ -202,16 +202,15 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $content = json_decode($response->getContent(), true);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(1, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(1, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(10, $content['total']);
-        $this->assertEquals(2, $content['last_page']);
-        $this->assertNotNull($content['next_page_url']);
-        $this->assertNull($content['prev_page_url']);
+        $this->assertEquals(2, $content['lastPage']);
+        $this->assertNotNull($content['nextPageUrl']);
+        $this->assertNull($content['prevPageUrl']);
 
-        // Vérifier que l'URL contient les bons paramètres
-        $this->assertStringContainsString('current_page=2', $content['next_page_url']);
-        $this->assertStringContainsString('per_page=5', $content['next_page_url']);
+        $this->assertStringContainsString('current_page=2', $content['nextPageUrl']);
+        $this->assertStringContainsString('per_page=5', $content['nextPageUrl']);
     }
 
     public function test_full_index_cars_response_with_prev_page_url(): void
@@ -226,15 +225,14 @@ final class PaginationUrlBuilderServiceTest extends IntegrationTestCase
         $content = json_decode($response->getContent(), true);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(2, $content['current_page']);
-        $this->assertEquals(5, $content['per_page']);
+        $this->assertEquals(2, $content['currentPage']);
+        $this->assertEquals(5, $content['perPage']);
         $this->assertEquals(10, $content['total']);
-        $this->assertEquals(2, $content['last_page']);
-        $this->assertNull($content['next_page_url']);
-        $this->assertNotNull($content['prev_page_url']);
+        $this->assertEquals(2, $content['lastPage']);
+        $this->assertNull($content['nextPageUrl']);
+        $this->assertNotNull($content['prevPageUrl']);
 
-        // Vérifier que l'URL contient les bons paramètres
-        $this->assertStringContainsString('current_page=1', $content['prev_page_url']);
-        $this->assertStringContainsString('per_page=5', $content['prev_page_url']);
+        $this->assertStringContainsString('current_page=1', $content['prevPageUrl']);
+        $this->assertStringContainsString('per_page=5', $content['prevPageUrl']);
     }
 }

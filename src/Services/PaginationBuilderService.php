@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions\Services;
 
-use AndyDefer\Actions\Records\PaginationMetaRecord;
+use AndyDefer\Actions\Datas\PaginationData;
 use AndyDefer\DomainStructures\Utils\Sequential;
 use AndyDefer\PhpClient\ValueObjects\UrlVO;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-final class PaginationUrlBuilderService
+final class PaginationBuilderService
 {
-    public function build(Builder $query): PaginationMetaRecord
+    public function build(Builder $query): PaginationData
     {
         $perPage = (int) request()->input('per_page', 5);
         $currentPage = (int) request()->input('current_page', 1);
@@ -65,18 +65,18 @@ final class PaginationUrlBuilderService
         return new UrlVO($url);
     }
 
-    private function buildResponse(LengthAwarePaginator $paginator, ?UrlVO $nextPageUrl, ?UrlVO $prevPageUrl): PaginationMetaRecord
+    private function buildResponse(LengthAwarePaginator $paginator, ?UrlVO $nextPageUrl, ?UrlVO $prevPageUrl): PaginationData
     {
         $items = action_normalizer_chain(true)->normalize($paginator->items());
 
-        return new PaginationMetaRecord(
+        return new PaginationData(
             items: Sequential::from($items),
-            current_page: $paginator->currentPage(),
-            per_page: $paginator->perPage(),
+            currentPage: $paginator->currentPage(),
+            perPage: $paginator->perPage(),
             total: $paginator->total(),
-            last_page: $paginator->lastPage(),
-            next_page_url: $nextPageUrl,
-            prev_page_url: $prevPageUrl,
+            lastPage: $paginator->lastPage(),
+            nextPageUrl: $nextPageUrl,
+            prevPageUrl: $prevPageUrl,
         );
     }
 }

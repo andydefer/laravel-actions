@@ -16,7 +16,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         // Arrange
         $factory = ResponseFactory::json(TestSearchData::from([
             'searchQuery' => 'test',
-            'currentPage' => 1
+            'currentPage' => 1,
         ]), 200);
 
         // Act
@@ -33,7 +33,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::get('/api/test', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'Hello World',
-                'currentPage' => 1
+                'currentPage' => 1,
             ]), 200)
         ));
 
@@ -44,7 +44,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertStatus(200);
         $response->assertJson([
             'searchQuery' => 'Hello World',
-            'currentPage' => 1
+            'currentPage' => 1,
         ]);
     }
 
@@ -116,7 +116,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         // Assert
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/plain; charset=utf-8');
-        $response->assertSee("User-agent: *");
+        $response->assertSee('User-agent: *');
     }
 
     public function test_action_factory_with_html_response(): void
@@ -141,7 +141,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::get('/api/data', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'value',
-                'currentPage' => 1
+                'currentPage' => 1,
             ]), 200)
         ))->name('api.data')->middleware('api');
 
@@ -152,7 +152,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertStatus(200);
         $response->assertJson([
             'searchQuery' => 'value',
-            'currentPage' => 1
+            'currentPage' => 1,
         ]);
     }
 
@@ -162,7 +162,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::get('/api/action', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'from_action',
-                'currentPage' => 2
+                'currentPage' => 2,
             ]), 200)
         ));
 
@@ -173,7 +173,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertStatus(200);
         $response->assertJson([
             'searchQuery' => 'from_action',
-            'currentPage' => 2
+            'currentPage' => 2,
         ]);
     }
 
@@ -183,7 +183,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::get('/api/headers', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'test',
-                'currentPage' => 1
+                'currentPage' => 1,
             ]), 200)
                 ->withHeaders(['X-Custom-Header' => 'custom-value'])
         ));
@@ -196,7 +196,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertHeader('X-Custom-Header', 'custom-value');
         $response->assertJson([
             'searchQuery' => 'test',
-            'currentPage' => 1
+            'currentPage' => 1,
         ]);
     }
 
@@ -206,7 +206,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::post('/api/resource', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'created',
-                'currentPage' => 1
+                'currentPage' => 1,
             ]), 201)
                 ->withHeaders(['Location' => '/api/resource/1'])
         ));
@@ -219,7 +219,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertHeader('Location', '/api/resource/1');
         $response->assertJson([
             'searchQuery' => 'created',
-            'currentPage' => 1
+            'currentPage' => 1,
         ]);
     }
 
@@ -229,7 +229,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         Route::get('/api/search', action_factory(
             ResponseFactory::json(TestSearchData::from([
                 'searchQuery' => 'laravel actions',
-                'currentPage' => 5
+                'currentPage' => 5,
             ]), 200)
         ));
 
@@ -240,7 +240,7 @@ final class ActionFactoryHelperTest extends IntegrationTestCase
         $response->assertStatus(200);
         $response->assertJson([
             'searchQuery' => 'laravel actions',
-            'currentPage' => 5
+            'currentPage' => 5,
         ]);
     }
 }

@@ -24,11 +24,11 @@ use Exception;
  *     public function __construct(
  *         private readonly UserRepositoryInterface $userRepository
  *     ) {}
- *     
+ *
  *     protected function handle(AbstractRecord $request): ResponseFactory
  *     {
  *         $user = $this->userRepository->create($request->toArray());
- *         
+ *
  *         return ResponseFactory::json(UserData::from($user), 201);
  *     }
  * }
@@ -47,8 +47,7 @@ abstract class AbstractAction
      * If an exception occurs during handle(), the after() hook is still called
      * with the error details before re-throwing the exception.
      *
-     * @param AbstractRecord $recordRequest The validated request data as a Record object
-     *
+     * @param  AbstractRecord  $recordRequest  The validated request data as a Record object
      * @return ResponseFactory The HTTP response factory ready to be converted to a response
      *
      * @throws Exception Any exception thrown during the handle() method
@@ -78,7 +77,7 @@ abstract class AbstractAction
      * - Logging
      * - Precondition validation
      *
-     * @param AbstractRecord $recordRequest The request record
+     * @param  AbstractRecord  $recordRequest  The request record
      */
     protected function before(AbstractRecord $recordRequest): void
     {
@@ -92,8 +91,7 @@ abstract class AbstractAction
      * It receives the validated request record and must return a ResponseFactory
      * configured with the appropriate HTTP response.
      *
-     * @param AbstractRecord $recordRequest The request record containing validated data
-     *
+     * @param  AbstractRecord  $recordRequest  The request record containing validated data
      * @return ResponseFactory The HTTP response factory
      */
     abstract protected function handle(AbstractRecord $recordRequest): ResponseFactory;
@@ -107,9 +105,9 @@ abstract class AbstractAction
      * - Recording metrics
      * - Cleaning up resources
      *
-     * @param bool             $success       Whether the execution was successful
-     * @param Exception|null   $error         The exception if execution failed, null otherwise
-     * @param AbstractRecord   $recordRequest The request record
+     * @param  bool  $success  Whether the execution was successful
+     * @param  Exception|null  $error  The exception if execution failed, null otherwise
+     * @param  AbstractRecord  $recordRequest  The request record
      */
     protected function after(bool $success, ?Exception $error = null, AbstractRecord $recordRequest = new EmptyRecord): void
     {

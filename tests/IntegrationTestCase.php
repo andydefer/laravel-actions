@@ -8,16 +8,24 @@ use AndyDefer\Actions\ActionServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase as Orchestra;
 
-/**
- * Base TestCase for all Integration tests.
- *
- * Integration tests boot Laravel and test the package in a real application context.
- * Use these tests for HTTP endpoints, service container resolution, and full-stack flows.
- *
- * @author Andy Defer
- */
 abstract class IntegrationTestCase extends Orchestra
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Route::clearResolvedInstances();
+        $this->app['router']->getRoutes()->refreshNameLookups();
+
+        $this->runMigrations();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        \Mockery::close();
+    }
+
     protected function getPackageProviders($app): array
     {
         return [
@@ -25,23 +33,27 @@ abstract class IntegrationTestCase extends Orchestra
         ];
     }
 
-    protected function defineEnvironment($app): void
+    protected function getEnvironmentSetUp($app): void
     {
-        // Laisser vide - la configuration par défaut du package sera mergée
+        $app['config']->set('database.default', 'testbench');
+        $app['config']->set('database.connections.testbench', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ]);
     }
 
-    protected function setUp(): void
+    protected function runMigrations(): void
     {
-        parent::setUp();
+        $testMigrationsPath = __DIR__.'/Fixtures/migrations';
+        if (is_dir($testMigrationsPath)) {
+            $this->loadMigrationsFrom($testMigrationsPath);
+        }
 
-        // Reset routes before each test
-        Route::clearResolvedInstances();
-        $this->app['router']->getRoutes()->refreshNameLookups();
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        \Mockery::close();
+        $this->artisan('migrate', [
+            '--database' => 'testbench',
+            '--force' => true,
+        ])->run();
     }
 }

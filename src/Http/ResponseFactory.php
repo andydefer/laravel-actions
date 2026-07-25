@@ -31,15 +31,18 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final class ResponseFactory
 {
     private HttpResponseType $type;
+
     private mixed $content;
+
     private int $status = 200;
+
     private array $headers = [];
 
     /**
      * Private constructor forces use of named static constructors.
      *
-     * @param HttpResponseType $type    The type of HTTP response to create
-     * @param mixed            $content The raw content for the response
+     * @param  HttpResponseType  $type  The type of HTTP response to create
+     * @param  mixed  $content  The raw content for the response
      */
     private function __construct(HttpResponseType $type, mixed $content)
     {
@@ -53,9 +56,8 @@ final class ResponseFactory
      * The AbstractData object is automatically converted to a camelCase array
      * when toResponse() is called.
      *
-     * @param AbstractData $data The data to return (converted to array automatically)
-     * @param int          $code HTTP status code (200, 201, 422, etc.)
-     *
+     * @param  AbstractData  $data  The data to return (converted to array automatically)
+     * @param  int  $code  HTTP status code (200, 201, 422, etc.)
      * @return self Factory instance configured for JSON response
      */
     public static function json(AbstractData $data, int $code = 200): self
@@ -69,9 +71,8 @@ final class ResponseFactory
     /**
      * Creates a redirect response to an absolute URL.
      *
-     * @param string $url  The destination URL
-     * @param int    $code HTTP redirect status (301, 302, 303, 307, 308)
-     *
+     * @param  string  $url  The destination URL
+     * @param  int  $code  HTTP redirect status (301, 302, 303, 307, 308)
      * @return self Factory instance configured for redirect response
      */
     public static function redirect(string $url, int $code = 302): self
@@ -85,10 +86,9 @@ final class ResponseFactory
     /**
      * Creates a redirect response to a named route.
      *
-     * @param string $route      The route name
-     * @param array  $parameters Route parameters
-     * @param int    $code       HTTP redirect status
-     *
+     * @param  string  $route  The route name
+     * @param  array  $parameters  Route parameters
+     * @param  int  $code  HTTP redirect status
      * @return self Factory instance configured for route redirect
      */
     public static function redirectRoute(string $route, array $parameters = [], int $code = 302): self
@@ -105,8 +105,7 @@ final class ResponseFactory
     /**
      * Creates a redirect response back to the previous page.
      *
-     * @param int $code HTTP redirect status
-     *
+     * @param  int  $code  HTTP redirect status
      * @return self Factory instance configured for back redirect
      */
     public static function redirectBack(int $code = 302): self
@@ -122,10 +121,9 @@ final class ResponseFactory
      *
      * Useful for streaming large files, generating CSV on the fly, or video streaming.
      *
-     * @param callable $callback    Function that writes output to the response stream
-     * @param string   $contentType MIME type of the streamed content
-     * @param int      $code        HTTP status code
-     *
+     * @param  callable  $callback  Function that writes output to the response stream
+     * @param  string  $contentType  MIME type of the streamed content
+     * @param  int  $code  HTTP status code
      * @return self Factory instance configured for stream response
      */
     public static function stream(callable $callback, string $contentType = 'application/octet-stream', int $code = 200): self
@@ -145,8 +143,7 @@ final class ResponseFactory
      * SSE allows servers to push real-time events to clients over a single HTTP connection.
      * Useful for live notifications, real-time dashboards, or progress updates.
      *
-     * @param callable $callback Function that emits SSE events using the SSE format
-     *
+     * @param  callable  $callback  Function that emits SSE events using the SSE format
      * @return self Factory instance configured for SSE response
      */
     public static function sse(callable $callback): self
@@ -178,9 +175,8 @@ final class ResponseFactory
      *
      * Renders a React/Vue component with server-side data when using Inertia.js.
      *
-     * @param string $component Name of the React/Vue component to render
-     * @param array  $props     Props to pass to the component
-     *
+     * @param  string  $component  Name of the React/Vue component to render
+     * @param  array  $props  Props to pass to the component
      * @return self Factory instance configured for Inertia response
      */
     public static function inertia(string $component, array $props = []): self
@@ -200,9 +196,8 @@ final class ResponseFactory
      * Use this only for rare cases where Inertia.js is not suitable,
      * such as email previews, legacy views, or external integrations.
      *
-     * @param string $html Raw HTML content to return
-     * @param int    $code HTTP status code
-     *
+     * @param  string  $html  Raw HTML content to return
+     * @param  int  $code  HTTP status code
      * @return self Factory instance configured for HTML response
      */
     public static function html(string $html, int $code = 200): self
@@ -219,9 +214,8 @@ final class ResponseFactory
      * The browser will attempt to display the file (PDF, image, video) directly
      * rather than downloading it.
      *
-     * @param string      $filePath Absolute or relative path to the file
-     * @param string|null $fileName Optional custom filename for inline display
-     *
+     * @param  string  $filePath  Absolute or relative path to the file
+     * @param  string|null  $fileName  Optional custom filename for inline display
      * @return self Factory instance configured for inline file response
      */
     public static function fileInline(string $filePath, ?string $fileName = null): self
@@ -240,9 +234,8 @@ final class ResponseFactory
      *
      * The browser will save the file to disk rather than displaying it.
      *
-     * @param string      $filePath Absolute or relative path to the file
-     * @param string|null $fileName Optional custom filename for the downloaded file
-     *
+     * @param  string  $filePath  Absolute or relative path to the file
+     * @param  string|null  $fileName  Optional custom filename for the downloaded file
      * @return self Factory instance configured for file download response
      */
     public static function fileDownload(string $filePath, ?string $fileName = null): self
@@ -261,9 +254,8 @@ final class ResponseFactory
      *
      * Useful for API endpoints that return raw text, logs, or configuration files.
      *
-     * @param string $content Text content to return
-     * @param int    $code    HTTP status code
-     *
+     * @param  string  $content  Text content to return
+     * @param  int  $code  HTTP status code
      * @return self Factory instance configured for text response
      */
     public static function text(string $content, int $code = 200): self
@@ -280,10 +272,9 @@ final class ResponseFactory
      * Prefer using Inertia for modern applications. This method exists for
      * legacy views or simple integrations.
      *
-     * @param string $view View name
-     * @param array  $data Data to pass to the view
-     * @param int    $code HTTP status code
-     *
+     * @param  string  $view  View name
+     * @param  array  $data  Data to pass to the view
+     * @param  int  $code  HTTP status code
      * @return self Factory instance configured for view response
      */
     public static function view(string $view, array $data = [], int $code = 200): self
@@ -302,8 +293,7 @@ final class ResponseFactory
      *
      * This method is fluent and returns the same instance for chaining.
      *
-     * @param array<string, string> $headers Associative array of header names to values
-     *
+     * @param  array<string, string>  $headers  Associative array of header names to values
      * @return self Same instance for method chaining
      */
     public function withHeaders(array $headers): self
@@ -316,8 +306,7 @@ final class ResponseFactory
     /**
      * Changes the HTTP status code of the response.
      *
-     * @param int $code HTTP status code
-     *
+     * @param  int  $code  HTTP status code
      * @return self Same instance for method chaining
      */
     public function withStatus(int $code): self
@@ -403,8 +392,6 @@ final class ResponseFactory
 
     /**
      * Converts to a JSON response.
-     *
-     * @return JsonResponse
      */
     private function toJsonResponse(): JsonResponse
     {
@@ -413,8 +400,6 @@ final class ResponseFactory
 
     /**
      * Converts to a redirect response to a URL.
-     *
-     * @return RedirectResponse
      */
     private function toRedirectResponse(): RedirectResponse
     {
@@ -423,8 +408,6 @@ final class ResponseFactory
 
     /**
      * Converts to a redirect response to a named route.
-     *
-     * @return RedirectResponse
      */
     private function toRedirectRouteResponse(): RedirectResponse
     {
@@ -438,8 +421,6 @@ final class ResponseFactory
 
     /**
      * Converts to a redirect response back to the previous page.
-     *
-     * @return RedirectResponse
      */
     private function toRedirectBackResponse(): RedirectResponse
     {
@@ -448,8 +429,6 @@ final class ResponseFactory
 
     /**
      * Converts to a streaming response.
-     *
-     * @return StreamedResponse
      */
     private function toStreamResponse(): StreamedResponse
     {
@@ -465,8 +444,6 @@ final class ResponseFactory
 
     /**
      * Converts to a Server-Sent Events streaming response.
-     *
-     * @return StreamedResponse
      */
     private function toSseResponse(): StreamedResponse
     {
@@ -484,8 +461,6 @@ final class ResponseFactory
 
     /**
      * Converts to a 204 No Content response.
-     *
-     * @return Response
      */
     private function toNoContentResponse(): Response
     {
@@ -494,8 +469,6 @@ final class ResponseFactory
 
     /**
      * Converts to an Inertia response.
-     *
-     * @return InertiaResponse
      */
     private function toInertiaResponse(): InertiaResponse
     {
@@ -504,8 +477,6 @@ final class ResponseFactory
 
     /**
      * Converts to an HTML response.
-     *
-     * @return Response
      */
     private function toHtmlResponse(): Response
     {
@@ -518,8 +489,6 @@ final class ResponseFactory
 
     /**
      * Converts to a file inline response.
-     *
-     * @return BinaryFileResponse
      */
     private function toFileInlineResponse(): BinaryFileResponse
     {
@@ -528,15 +497,13 @@ final class ResponseFactory
         return response()->file(
             $this->content['path'],
             array_merge([
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Content-Disposition' => 'inline; filename="'.$fileName.'"',
             ], $this->headers)
         );
     }
 
     /**
      * Converts to a file download response.
-     *
-     * @return BinaryFileResponse
      */
     private function toFileDownloadResponse(): BinaryFileResponse
     {
@@ -547,8 +514,6 @@ final class ResponseFactory
 
     /**
      * Converts to a plain text response.
-     *
-     * @return Response
      */
     private function toTextResponse(): Response
     {
@@ -561,8 +526,6 @@ final class ResponseFactory
 
     /**
      * Converts to a Blade view response.
-     *
-     * @return Response
      */
     private function toViewResponse(): Response
     {

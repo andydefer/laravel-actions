@@ -120,8 +120,6 @@ abstract class AbstractRequest extends FormRequest
 
     /**
      * Get validated data as a StrictDataObject.
-     *
-     * @return StrictDataObject
      */
     public function getValidated(): StrictDataObject
     {

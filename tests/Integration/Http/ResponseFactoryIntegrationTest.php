@@ -7,7 +7,10 @@ namespace AndyDefer\Actions\Tests\Integration\Http;
 use AndyDefer\Actions\Http\ResponseFactory;
 use AndyDefer\Actions\Tests\Fixtures\Data\TestUserData;
 use AndyDefer\Actions\Tests\IntegrationTestCase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -38,7 +41,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         ]);
 
         // Create a named route for redirectRoute tests
-        Route::get('/home', fn() => 'home')->name('home');
+        Route::get('/home', fn () => 'home')->name('home');
     }
 
     public function test_json_to_response_returns_json_response(): void
@@ -48,7 +51,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         $response = $factory->toResponse();
 
         // Assert
-        $this->assertInstanceOf(\Illuminate\Http\JsonResponse::class, $response);
+        $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame($this->testData->toArray(), $response->getData(true));
     }
@@ -81,7 +84,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         $response = $factory->toResponse();
 
         // Assert
-        $this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $response);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame(301, $response->getStatusCode());
         $this->assertStringEndsWith('/dashboard', $response->getTargetUrl());
     }
@@ -93,7 +96,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         $response = $factory->toResponse();
 
         // Assert
-        $this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $response);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame(303, $response->getStatusCode());
         $this->assertStringEndsWith('/home', $response->getTargetUrl());
     }
@@ -105,7 +108,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         $response = $factory->toResponse();
 
         // Assert
-        $this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $response);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame(302, $response->getStatusCode());
     }
 
@@ -217,7 +220,7 @@ final class ResponseFactoryIntegrationTest extends IntegrationTestCase
         $response = $factory->toResponse();
 
         // Assert
-        $this->assertInstanceOf(\Inertia\Response::class, $response);
+        $this->assertInstanceOf(Response::class, $response);
     }
 
     public function test_to_response_preserves_headers(): void

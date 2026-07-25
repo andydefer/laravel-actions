@@ -6,7 +6,6 @@ namespace AndyDefer\Actions\Tests\Integration;
 
 use AndyDefer\Actions\ActionServiceProvider;
 use AndyDefer\Actions\Tests\IntegrationTestCase;
-use Illuminate\Support\Facades\Config;
 
 final class ActionServiceProviderTest extends IntegrationTestCase
 {
@@ -18,7 +17,6 @@ final class ActionServiceProviderTest extends IntegrationTestCase
 
         $this->provider = new ActionServiceProvider($this->app);
     }
-
 
     public function test_boot_publishes_configuration(): void
     {

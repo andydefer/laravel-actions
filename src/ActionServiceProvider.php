@@ -27,7 +27,6 @@ use Illuminate\Support\ServiceProvider;
  */
 final class ActionServiceProvider extends ServiceProvider
 {
-
     /**
      * Register any application services.
      *

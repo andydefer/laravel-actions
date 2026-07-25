@@ -129,7 +129,7 @@ final class ActionRouteHelperTest extends IntegrationTestCase
         $response->assertStatus(200);
 
         // Verify route exists by making a request and checking the response
-        $this->assertTrue(true, "Route should be accessible");
+        $this->assertTrue(true, 'Route should be accessible');
     }
 
     public function test_helper_with_middleware(): void

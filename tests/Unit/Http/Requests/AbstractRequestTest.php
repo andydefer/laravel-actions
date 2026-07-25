@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace AndyDefer\Actions\Tests\Unit\Http\Requests;
 
 use AndyDefer\Actions\Http\Requests\EmptyRequest;
+use AndyDefer\Actions\Tests\Fixtures\Records\TestUserRecord;
 use AndyDefer\Actions\Tests\Fixtures\Requests\NestedTestUserRequest;
 use AndyDefer\Actions\Tests\Fixtures\Requests\TestUserRequest;
-use AndyDefer\Actions\Tests\Fixtures\Records\TestUserRecord;
 use AndyDefer\Actions\Tests\IntegrationTestCase;
-use AndyDefer\DomainStructures\Utils\StrictDataObject;
 use Illuminate\Support\Facades\Route;
 
 final class AbstractRequestTest extends IntegrationTestCase
@@ -47,6 +46,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that returns validated data
         Route::post('/api/test-array-access', function (TestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
@@ -75,6 +75,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that returns validated data via object property
         Route::post('/api/test-object-access', function (TestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json([
                 'name' => $validated->name,
                 'email' => $validated->email,
@@ -129,6 +130,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that uses getValidated() method
         Route::post('/api/test-get-validated', function (TestUserRequest $request) {
             $validated = $request->getValidated();
+
             return response()->json($validated->toArray());
         });
 
@@ -153,6 +155,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that returns all validated fields
         Route::post('/api/test-only-validated', function (TestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json(array_keys($validated->toArray()));
         });
 
@@ -176,6 +179,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that returns validated data with null values
         Route::post('/api/test-null-values', function (TestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json([
                 'has_age' => isset($validated['age']),
                 'age_is_null' => $validated['age'] === null,
@@ -221,6 +225,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that returns validated data
         Route::post('/api/test-partial-data', function (TestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json([
                 'name' => $validated->name,
                 'email' => $validated->email,
@@ -247,8 +252,9 @@ final class AbstractRequestTest extends IntegrationTestCase
     {
         // Arrange: Create a route that returns the Record from the Request
         Route::post('/api/test-get-record', function (TestUserRequest $request) {
-            /** @var TestUserRecord  */
+            /** @var TestUserRecord */
             $record = $request->getRecord();
+
             return response()->json([
                 'id' => $record->id,
                 'name' => $record->name,
@@ -278,6 +284,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that uses NestedTestUserRequest
         Route::post('/api/test-nested', function (NestedTestUserRequest $request) {
             $validated = $request->validated();
+
             return response()->json([
                 'user_name' => $validated['user']['name'],
                 'user_email' => $validated['user']['email'],
@@ -328,6 +335,7 @@ final class AbstractRequestTest extends IntegrationTestCase
         // Arrange: Create a route that uses EmptyRequest
         Route::post('/api/test-empty-rules', function (EmptyRequest $request) {
             $validated = $request->validated();
+
             return response()->json($validated->toArray());
         });
 

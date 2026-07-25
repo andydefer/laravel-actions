@@ -21,6 +21,7 @@ use InvalidArgumentException;
  * ActionRoute::post('/api/users', CreateUserRequest::class, CreateUserAction::class);
  *
  * @author Andy Defer
+ *
  * @deprecated Use action_route() helper function instead.
  * @see action_route()
  */
@@ -34,6 +35,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::get($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function get(string $uri, string $requestClass, string $actionClass): void
@@ -49,6 +51,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::post($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function post(string $uri, string $requestClass, string $actionClass): void
@@ -64,6 +67,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::put($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function put(string $uri, string $requestClass, string $actionClass): void
@@ -79,6 +83,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::patch($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function patch(string $uri, string $requestClass, string $actionClass): void
@@ -94,6 +99,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::delete($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function delete(string $uri, string $requestClass, string $actionClass): void
@@ -110,6 +116,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::match($methods, $uri, action_route($requestClass, $actionClass)) instead
      */
     public static function match(array $methods, string $uri, string $requestClass, string $actionClass): void
@@ -125,6 +132,7 @@ final class ActionRoute
      * @param  string  $actionClass  FQCN of the Action class (must extend AbstractAction)
      *
      * @throws InvalidArgumentException When requestClass or actionClass is invalid
+     *
      * @deprecated Use Route::any($uri, action_route($requestClass, $actionClass)) instead
      */
     public static function any(string $uri, string $requestClass, string $actionClass): void

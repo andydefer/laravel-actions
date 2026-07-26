@@ -15,7 +15,7 @@
         "inertiajs/inertia-laravel": "^2.0|^3.0",
         "ramsey/uuid": "^4.7",
         "andydefer/php-client": "^0.6.1",
-        "andydefer/php-services": "^1.5.11"
+        "andydefer/php-services": "^1.6.0"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",

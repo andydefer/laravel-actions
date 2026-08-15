@@ -181,13 +181,24 @@ final class ResponseFactory
      */
     public static function inertia(string $component, array $props = []): self
     {
+
         $instance = new self(HttpResponseType::INERTIA, [
             'component' => $component,
-            'props' => $props,
+            'props' => self::normal($props),
         ]);
         $instance->status = 200;
 
         return $instance;
+    }
+
+    /**
+     * Write an error message with red color.
+     */
+    protected static function normal(mixed $data): mixed
+    {
+        $prefilterd = action_normalizer_chain(true)->normalize($data);
+
+        return normalizer_chain(true)->normalize($prefilterd);
     }
 
     /**

@@ -6,6 +6,7 @@ namespace AndyDefer\Actions\Tests\Fixtures\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Model
@@ -25,16 +26,39 @@ class User extends Model
         'password',
     ];
 
+    protected $with = [
+        'cars',
+    ];
+
     protected $appends = [
         'full_name',
         'is_active',
         'created_at_formatted',
         'updated_at_formatted',
+        'cars_in_other_form',
     ];
 
     public function doctorProfile(): HasOne
     {
         return $this->hasOne(DoctorProfile::class);
+    }
+
+    public function cars(): HasMany
+    {
+        return $this->hasMany(Car::class);
+    }
+
+    /**
+     * Accessor that returns the cars relation.
+     * This is an attribute that will be included in normalization.
+     */
+    protected function carsInOtherForm(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->cars;
+            }
+        );
     }
 
     // Accessor avec suffixe Attribute

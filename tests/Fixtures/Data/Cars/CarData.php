@@ -10,6 +10,7 @@ final class CarData extends AbstractData
 {
     public function __construct(
         public readonly int $id,
+        public readonly ?int $user_id,
         public readonly string $brand,
         public readonly string $model,
         public readonly int $year,

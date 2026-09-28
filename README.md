@@ -221,6 +221,75 @@ Route::get('/health', action_factory(ResponseFactory::json(['status' => 'ok'], 2
 Route::get('/health', action_factory(ResponseFactory::json(HealthData::from(['status' => 'ok']), 200)));
 ```
 
+### 8. CacheService
+
+Service de cache typé pour objets `Transformable`. Restaure automatiquement la classe concrète des objets mis en cache.
+
+```php
+use AndyDefer\Actions\Contracts\CacheServiceInterface;
+
+final class ShowUserAction extends AbstractAction
+{
+    public function __construct(
+        private readonly CacheServiceInterface $cache,
+    ) {}
+
+    protected function handle(AbstractRecord $request): ResponseFactory
+    {
+        /** @var ShowUserRecord $request */
+
+        $user = $this->cache->remember(
+            "user.{$request->id}",
+            fn (): UserRecord => UserRecord::from([...]),
+            ttlSeconds: 300,
+        );
+
+        return ResponseFactory::json(UserData::from([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+        ]));
+    }
+}
+```
+
+**Caractéristiques :**
+
+- **Typage fort** : seuls les objets implémentant `Transformable` sont acceptés.
+- **Restauration automatique** : la classe concrète est conservée et reconstruite via `::from()`.
+- **API complète** : `put()`, `get()`, `remember()`, `has()`, `forget()`.
+- **Préfixe dédié** : toutes les clés sont préfixées par `actions:cache:`.
+
+**Exemple complet :**
+
+```php
+/** @var CacheServiceInterface $cache */
+$cache = app(CacheServiceInterface::class);
+
+$user = UserRecord::from([
+    'name'  => 'John Doe',
+    'email' => 'john@example.com',
+    'age'   => 42,
+]);
+
+// Stockage
+$cache->put('user.42', $user, 300);
+
+// Récupération typée
+$restored = $cache->get('user.42', UserRecord::class);
+// $restored instanceof UserRecord
+
+// Vérification
+if ($cache->has('user.42')) {
+    // …
+}
+
+// Invalidation
+$cache->forget('user.42');
+```
+
+> ⚠️ **CacheService n'accepte QUE les objets implémentant `Transformable`.** Les scalaires, tableaux bruts et objets non-transformables déclenchent une `InvalidArgumentException`.
+
 ---
 
 ## Guide de démarrage
@@ -400,6 +469,53 @@ Route::get('/resume', action_factory(ResponseFactory::fileInline(storage_path('r
 Route::post('/webhook', action_factory(ResponseFactory::noContent()));
 ```
 
+### Exemple : Cache d'un Record dans une Action
+
+```php
+// app/Actions/ShowUserAction.php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions;
+
+use AndyDefer\Actions\Actions\AbstractAction;
+use AndyDefer\Actions\Contracts\CacheServiceInterface;
+use AndyDefer\Actions\Http\ResponseFactory;
+use AndyDefer\DomainStructures\Abstracts\AbstractRecord;
+use App\Data\UserData;
+use App\Records\ShowUserRecord;
+use App\Records\UserRecord;
+
+final class ShowUserAction extends AbstractAction
+{
+    public function __construct(
+        private readonly CacheServiceInterface $cache,
+    ) {}
+
+    protected function handle(AbstractRecord $request): ResponseFactory
+    {
+        /** @var ShowUserRecord $request */
+
+        $user = $this->cache->remember(
+            "user.{$request->id}",
+            fn (): UserRecord => UserRecord::from([
+                'name'  => "User {$request->id}",
+                'email' => "user{$request->id}@example.com",
+                'age'   => 30,
+            ]),
+            ttlSeconds: 300,
+        );
+
+        return ResponseFactory::json(UserData::from([
+            'id'    => $request->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+        ]));
+    }
+}
+```
+
 ---
 
 ## Documentation détaillée
@@ -414,6 +530,8 @@ Route::post('/webhook', action_factory(ResponseFactory::noContent()));
 | `action_factory()` | [Voir la documentation](docs/api-reference/support/action-factory-helper.md) |
 | `ActionRoute` (déprécié) | [Voir la documentation](docs/api-reference/support/action-route.md) |
 | `HttpResponseType` | [Voir la documentation](docs/api-reference/enums/http-response-type.md) |
+| `CacheService` | [Voir la documentation](docs/api-reference/services/cache-service.md) |
+| `CacheServiceInterface` | [Voir la documentation](docs/api-reference/contracts/cache-service-interface.md) |
 
 ---
 

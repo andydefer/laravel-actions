@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace AndyDefer\Actions;
 
+use AndyDefer\Actions\Contracts\CacheServiceInterface;
+use AndyDefer\Actions\Services\CacheService;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -34,7 +37,14 @@ final class ActionServiceProvider extends ServiceProvider
      * It merges the package's configuration file with the application's
      * existing configuration.
      */
-    public function register(): void {}
+    public function register(): void
+    {
+
+        $this->app->singleton(
+            CacheServiceInterface::class,
+            fn ($app) => new CacheService($app->make(CacheRepository::class))
+        );
+    }
 
     /**
      * Bootstrap any application services.

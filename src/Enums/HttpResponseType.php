@@ -26,6 +26,19 @@ namespace AndyDefer\Actions\Enums;
  * - TEXT: Plain text responses
  * - VIEW: Blade view responses
  *
+ * Classification invariants:
+ * - isApi() and isWeb() are mutually exclusive.
+ * - isFile() is orthogonal to isApi() and isWeb(): a file can be consumed
+ *   by a browser or by a programmatic client. File types are therefore
+ *   neither isApi() nor isWeb(), and callers must branch on isFile() before
+ *   assuming an API/Web dichotomy.
+ * - isPage() implies isWeb(); the reverse is not true (redirects are web
+ *   but not pages).
+ * - isRedirect() implies isWeb(); the reverse is not true (pages are web
+ *   but not redirects).
+ * - isEmpty() is orthogonal to isApi() and isWeb(); today only NO_CONTENT
+ *   qualifies, and it is also isApi() (204 is a valid API response).
+ *
  * @example
  * $type = HttpResponseType::JSON;
  * echo $type->value; // 'json'
@@ -100,4 +113,162 @@ enum HttpResponseType: string
      * Blade view response for legacy Laravel views.
      */
     case VIEW = 'view';
+
+    /**
+     * Response types consumed by a programmatic client (mobile, SPA, service).
+     *
+     * True for: JSON, NO_CONTENT, TEXT, STREAM, SSE.
+     * False for: web types and file types.
+     */
+    public function isApi(): bool
+    {
+        return match ($this) {
+            self::JSON,
+            self::NO_CONTENT,
+            self::TEXT,
+            self::STREAM,
+            self::SSE => true,
+
+            self::HTML,
+            self::VIEW,
+            self::INERTIA,
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK,
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => false,
+        };
+    }
+
+    /**
+     * Response types consumed by a browser (HTML render or browser navigation).
+     *
+     * True for: HTML, VIEW, INERTIA, REDIRECT, REDIRECT_ROUTE, REDIRECT_BACK.
+     * False for: API types and file types.
+     */
+    public function isWeb(): bool
+    {
+        return match ($this) {
+            self::HTML,
+            self::VIEW,
+            self::INERTIA,
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK => true,
+
+            self::JSON,
+            self::NO_CONTENT,
+            self::TEXT,
+            self::STREAM,
+            self::SSE,
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => false,
+        };
+    }
+
+    /**
+     * Response types that render a page (HTML document, Blade view, Inertia page).
+     *
+     * True for: HTML, VIEW, INERTIA.
+     * Implies isWeb() === true.
+     */
+    public function isPage(): bool
+    {
+        return match ($this) {
+            self::HTML,
+            self::VIEW,
+            self::INERTIA => true,
+
+            self::JSON,
+            self::NO_CONTENT,
+            self::TEXT,
+            self::STREAM,
+            self::SSE,
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK,
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => false,
+        };
+    }
+
+    /**
+     * Response types that return a binary file to the client.
+     *
+     * True for: FILE_INLINE, FILE_DOWNLOAD.
+     * Orthogonal to isApi()/isWeb(): files are neither classified as API
+     * nor Web. Callers that need an exhaustive classification must check
+     * isFile() in addition to isApi()/isWeb().
+     */
+    public function isFile(): bool
+    {
+        return match ($this) {
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => true,
+
+            self::JSON,
+            self::NO_CONTENT,
+            self::TEXT,
+            self::STREAM,
+            self::SSE,
+            self::HTML,
+            self::VIEW,
+            self::INERTIA,
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK => false,
+        };
+    }
+
+    /**
+     * Response types that carry no body.
+     *
+     * True for: NO_CONTENT.
+     * Orthogonal to isApi()/isWeb(): NO_CONTENT is also isApi().
+     */
+    public function isEmpty(): bool
+    {
+        return match ($this) {
+            self::NO_CONTENT => true,
+
+            self::JSON,
+            self::TEXT,
+            self::STREAM,
+            self::SSE,
+            self::HTML,
+            self::VIEW,
+            self::INERTIA,
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK,
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => false,
+        };
+    }
+
+    /**
+     * Response types that instruct the client to navigate elsewhere.
+     *
+     * True for: REDIRECT, REDIRECT_ROUTE, REDIRECT_BACK.
+     * Implies isWeb() === true, but isPage() === false.
+     */
+    public function isRedirect(): bool
+    {
+        return match ($this) {
+            self::REDIRECT,
+            self::REDIRECT_ROUTE,
+            self::REDIRECT_BACK => true,
+
+            self::JSON,
+            self::NO_CONTENT,
+            self::TEXT,
+            self::STREAM,
+            self::SSE,
+            self::HTML,
+            self::VIEW,
+            self::INERTIA,
+            self::FILE_INLINE,
+            self::FILE_DOWNLOAD => false,
+        };
+    }
 }
